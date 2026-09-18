@@ -1,0 +1,48 @@
+name: Debian packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Release tag to build
+        required: true
+        default: v0.1.0
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Debian 12 ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+      - name: Validate release and runner
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          test "$RELEASE_TAG" = "v$(cat VERSION)"
+          test "$(dpkg --print-architecture)" = "$EXPECTED_ARCH"
+      - name: Install Podman
+        run: sudo apt-get update && sudo apt-get install -y podman
+      - name: Build and test Debian installation
+        run: make test-package-apt
+      - name: Export tested packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-${{ matrix.arch }}
+          path: dist/debian/*.deb
+          if-no-files-found: error
