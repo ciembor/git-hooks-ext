@@ -9,7 +9,7 @@ USER root
 RUN mkdir /packages && cp /home/builder/package/*.pkg.tar.zst /packages/ && cp PKGBUILD .SRCINFO /packages/
 
 FROM docker.io/library/archlinux:base
-RUN pacman -Syu --noconfirm git
+RUN pacman -Syu --noconfirm git diffutils
 COPY --from=builder /packages /packages
 COPY tests/packages/smoke.sh tests/packages/native-install.sh /checks/
 ENV PACKAGE_FAMILY=arch

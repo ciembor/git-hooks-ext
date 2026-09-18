@@ -9,7 +9,7 @@ case "$PACKAGE_FAMILY" in
       dnf install -y "$package"
     done
     ;;
-  arch) pacman -U --noconfirm /packages/*.pkg.tar.zst ;;
+  arch) pacman -U --noconfirm /packages/git-hooks-ext-[0-9]*.pkg.tar.zst ;;
   alpine) apk add --no-cache --allow-untrusted /packages/git-hooks-ext-*.apk ;;
   *) printf 'Unknown package family\n' >&2; exit 1 ;;
 esac
