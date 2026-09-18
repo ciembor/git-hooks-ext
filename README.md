@@ -68,6 +68,48 @@ The release also contains the corresponding GPL-2.0-only source archive.
 After installation, run `git-hooks-ext install --legacy` in each repository
 where you want to enable the additional hook events.
 
+### Other Linux Distributions
+
+Debian 13 and Ubuntu 24.04 / 26.04 LTS use the same `.deb` installation commands
+above. Compatibility tests install the published Debian 12 package rather
+than producing redundant distribution-specific packages.
+
+Native package recipes are available for:
+
+- Fedora 44: `packaging/fedora/git-hooks-ext.spec` (RPM, x86-64 / AArch64).
+- Arch Linux: `packaging/arch/PKGBUILD` (x86-64; not yet submitted to AUR).
+- Alpine 3.24: `packaging/alpine/APKBUILD` (APK, x86-64 / AArch64).
+
+These recipes use the checksummed release source. To build and test them with
+Podman on the corresponding architecture:
+
+```sh
+make test-package-fedora
+make test-package-arch
+make test-package-alpine
+```
+
+Outputs are exported to `dist/fedora/`, `dist/arch/` and `dist/alpine/`.
+The `Linux distribution packages` GitHub Actions workflow runs native builds
+and installation, hook and removal tests, plus the Debian / Ubuntu tests.
+Arch Linux is tested only on x86-64, not on the separate Arch Linux ARM project.
+Build dependencies remain in builder containers, not consumer containers.
+
+Install a downloaded native package with its distribution's package manager:
+
+```sh
+# Fedora
+sudo dnf install ./git-hooks-ext-0.1.0-1.fc44.*.rpm
+# Arch Linux
+sudo pacman -U ./git-hooks-ext-0.1.0-1-x86_64.pkg.tar.zst
+# Alpine (verify the release checksum first; no trusted APK repository yet)
+sudo apk add --allow-untrusted ./git-hooks-ext-0.1.0-r0-alpine3.24-*.apk
+```
+
+Alpine packages are signed with a disposable build key; that key is not added
+to users' trusted keys. `--allow-untrusted` is required for standalone APKs.
+No DNF, pacman or APK update repository is configured by these downloads.
+
 ## Build
 
 ```sh

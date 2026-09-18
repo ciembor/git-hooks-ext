@@ -2,6 +2,8 @@
 set -eu
 
 root=$(CDPATH= cd "$(dirname "$0")/../.." && pwd)
+. "$root/packaging/common.sh"
+package_version
 family=${1:?Specify fedora, arch or alpine}
 case "$family" in fedora|arch|alpine) ;; *) exit 2 ;; esac
 podman info >/dev/null
@@ -21,6 +23,6 @@ cleanup() {
   exit "$status"
 }
 trap cleanup EXIT
-podman run --name "$container" "$image"
+podman run --name "$container" -e "PACKAGE_VERSION=$version" "$image"
 podman cp "$container:/packages/." "$dist"
 podman rm "$container"
