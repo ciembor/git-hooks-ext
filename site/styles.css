@@ -35,7 +35,6 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
 .sidebar nav { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
 .sidebar nav a { padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--muted); text-decoration: none; }
 .sidebar nav a:hover { color: var(--ink); padding-left: 5px; }
-.sidebar-links { display: flex; gap: 14px; margin-top: 22px; }
 
 .manual { min-width: 0; }
 .manual-header { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 28px; border-bottom: 4px solid var(--ink); }
@@ -80,7 +79,7 @@ footer { display: flex; justify-content: space-between; padding: 24px 0 42px; bo
   .site-header nav a.external { display: none; }
   .page { grid-template-columns: 1fr; gap: 34px; padding-top: 34px; }
   .sidebar { position: static; }
-  .sidebar > p, .sidebar-links { display: none; }
+  .sidebar > p { display: none; }
   .sidebar nav { flex-direction: row; gap: 16px; overflow-x: auto; border-bottom: 1px solid var(--line); }
   .sidebar nav a { flex: 0 0 auto; border: 0; }
   .sidebar nav a:hover { padding-left: 0; }
