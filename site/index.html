@@ -3,133 +3,153 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Semantic Git ref events from the reference-transaction hook.">
+    <meta name="description" content="Documentation for git-hooks-ext semantic Git ref events.">
     <meta name="theme-color" content="#f4f2eb">
-    <title>git-hooks-ext — semantic Git ref events</title>
+    <title>git-hooks-ext documentation</title>
     <link rel="canonical" href="https://ciembor.github.io/git-hooks-ext/">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header class="site-header">
-      <a class="wordmark" href="#top" aria-label="git-hooks-ext home">
-        <span aria-hidden="true">◆</span> git-hooks-ext
-      </a>
-      <nav aria-label="Primary navigation">
-        <a href="#events">Events</a>
-        <a href="#quick-start">Quick start</a>
-        <a href="https://github.com/ciembor/git-hooks-ext">GitHub ↗</a>
-      </nav>
+      <div class="header-inner">
+        <a class="wordmark" href="#top"><span aria-hidden="true">◆</span> git-hooks-ext</a>
+        <nav aria-label="Project links">
+          <a href="https://github.com/ciembor/git-hooks-ext/releases/latest">Releases</a>
+          <a href="https://github.com/ciembor/git-hooks-ext">Source ↗</a>
+        </nav>
+      </div>
     </header>
 
-    <main id="top">
-      <section class="signal" aria-label="Example event transformation">
-        <div>
-          <span class="label">Git reports</span>
-          <code>0000… a84f… refs/heads/topic</code>
+    <main id="top" class="page">
+      <aside class="sidebar" aria-label="Page contents">
+        <p>Reference</p>
+        <nav>
+          <a href="#name">Name</a>
+          <a href="#synopsis">Synopsis</a>
+          <a href="#description">Description</a>
+          <a href="#events">Events</a>
+          <a href="#quick-start">Quick start</a>
+          <a href="#install">Install</a>
+          <a href="#notes">Notes</a>
+        </nav>
+        <div class="sidebar-links">
+          <a href="https://github.com/ciembor/git-hooks-ext/blob/main/README.md">README</a>
+          <a href="https://github.com/ciembor/git-hooks-ext/blob/main/DEVELOPMENT.md">Development</a>
         </div>
-        <span class="arrow" aria-hidden="true">→</span>
-        <div>
-          <span class="label">You receive</span>
-          <code class="accent">branch-created topic</code>
-        </div>
-      </section>
+      </aside>
 
-      <section id="events" class="section" aria-labelledby="events-title">
-        <div class="section-heading">
-          <p class="eyebrow">One vocabulary</p>
-          <h2 id="events-title">Events for every ref.</h2>
-          <p>Use the same names as hook files, Git config events, or dry-run output.</p>
-        </div>
-        <div class="event-grid">
-          <article>
-            <h3>Branch</h3>
-            <code>branch-created</code>
-            <code>branch-deleted</code>
-            <code>branch-updated</code>
-            <code>branch-renamed</code>
-          </article>
-          <article>
-            <h3>Remote branch</h3>
-            <code>remote-branch-created</code>
-            <code>remote-branch-deleted</code>
-            <code>remote-branch-updated</code>
-            <code>remote-branch-renamed</code>
-          </article>
-          <article>
-            <h3>Tag</h3>
-            <code>tag-created</code>
-            <code>tag-deleted</code>
-            <code>tag-updated</code>
-            <code>tag-renamed</code>
-          </article>
-          <article>
-            <h3>Stash</h3>
-            <code>stash-created</code>
-            <code>stash-deleted</code>
-            <code>stash-updated</code>
-          </article>
-          <article>
-            <h3>Note</h3>
-            <code>note-created</code>
-            <code>note-deleted</code>
-            <code>note-updated</code>
-            <code>note-renamed</code>
-          </article>
-        </div>
-      </section>
+      <article class="manual">
+        <header class="manual-header">
+          <div>
+            <span class="manual-label">Reference manual</span>
+            <h1>git-hooks-ext</h1>
+          </div>
+          <span class="version">0.1.0</span>
+        </header>
 
-      <section id="quick-start" class="section quick-start" aria-labelledby="quick-title">
-        <div class="section-heading">
-          <p class="eyebrow">Three steps</p>
-          <h2 id="quick-title">From install to event.</h2>
-          <p>Use config-based hooks on Git 2.54+, or add <code>--legacy</code> on older versions.</p>
-        </div>
-        <ol class="steps">
-          <li>
-            <span>01</span>
+        <section id="name">
+          <h2>Name</h2>
+          <p><strong>git-hooks-ext</strong> — semantic events for Git reference transactions</p>
+        </section>
+
+        <section id="synopsis">
+          <h2>Synopsis</h2>
+          <pre><code>git-hooks-ext install [--local|--global|--system|--legacy]
+git-hooks-ext add [--local|--global|--system] &lt;event&gt; &lt;name&gt; &lt;command&gt; [args...]
+git-hooks-ext events
+git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
+        </section>
+
+        <section id="description">
+          <h2>Description</h2>
+          <p>
+            Git's <code>reference-transaction</code> hook reports old and new
+            object IDs together with a ref name. <code>git-hooks-ext</code>
+            translates that input into events such as
+            <code>branch-created</code>, <code>tag-deleted</code>, and
+            <code>branch-renamed</code>.
+          </p>
+          <div class="translation" aria-label="Example event transformation">
             <div>
-              <h3>Enable the bridge</h3>
-              <pre><code>git-hooks-ext install</code></pre>
+              <span>Git input</span>
+              <code>0000… a84f… refs/heads/topic</code>
             </div>
-          </li>
-          <li>
-            <span>02</span>
+            <b aria-hidden="true">→</b>
             <div>
-              <h3>Add an event hook</h3>
-              <pre><code>cat &gt; .git/hooks/branch-created &lt;&lt;'SH'
+              <span>Event</span>
+              <code>branch-created topic</code>
+            </div>
+          </div>
+          <p>
+            Event hooks run after the transaction is committed. They receive
+            the short ref name, full ref name, old object ID, and new object ID.
+          </p>
+        </section>
+
+        <section id="events">
+          <h2>Events</h2>
+          <p>Event names are identical in hook files, Git config, and dry-run output.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th><th>Renamed</th></tr>
+              </thead>
+              <tbody>
+                <tr><th>Branch</th><td><code>branch-created</code></td><td><code>branch-deleted</code></td><td><code>branch-updated</code></td><td><code>branch-renamed</code></td></tr>
+                <tr><th>Remote branch</th><td><code>remote-branch-created</code></td><td><code>remote-branch-deleted</code></td><td><code>remote-branch-updated</code></td><td><code>remote-branch-renamed</code></td></tr>
+                <tr><th>Tag</th><td><code>tag-created</code></td><td><code>tag-deleted</code></td><td><code>tag-updated</code></td><td><code>tag-renamed</code></td></tr>
+                <tr><th>Stash</th><td><code>stash-created</code></td><td><code>stash-deleted</code></td><td><code>stash-updated</code></td><td>—</td></tr>
+                <tr><th>Note</th><td><code>note-created</code></td><td><code>note-deleted</code></td><td><code>note-updated</code></td><td><code>note-renamed</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="quick-start">
+          <h2>Quick start</h2>
+          <h3>1. Enable the hook bridge</h3>
+          <pre><code># Git 2.54+
+git-hooks-ext install
+
+# Git 2.53 and older
+git-hooks-ext install --legacy</code></pre>
+
+          <h3>2. Add an event hook</h3>
+          <pre><code>cat &gt; .git/hooks/branch-created &lt;&lt;'SH'
 #!/bin/sh
 echo "created branch: $1"
 SH
 chmod +x .git/hooks/branch-created</code></pre>
-            </div>
-          </li>
-          <li>
-            <span>03</span>
-            <div>
-              <h3>Create a branch</h3>
-              <pre><code>git branch topic
-<b>created branch: topic</b></code></pre>
-            </div>
-          </li>
-        </ol>
-      </section>
 
-      <section class="install-strip" aria-labelledby="install-title">
-        <div>
-          <p class="eyebrow">Install</p>
-          <h2 id="install-title">Pick your package.</h2>
-        </div>
-        <div class="install-links">
-          <a href="https://github.com/ciembor/homebrew-git-hooks-ext">Homebrew <span>↗</span></a>
-          <a href="https://github.com/ciembor/git-hooks-ext/releases/latest">Linux packages <span>↗</span></a>
-          <a href="https://github.com/users/ciembor/packages/container/package/git-hooks-ext">Container <span>↗</span></a>
-        </div>
-      </section>
+          <h3>3. Trigger it</h3>
+          <pre><code>git branch topic
+<span>created branch: topic</span></code></pre>
+        </section>
+
+        <section id="install">
+          <h2>Install</h2>
+          <dl class="install-list">
+            <div><dt>Homebrew</dt><dd><code>brew install ciembor/git-hooks-ext/git-hooks-ext</code></dd></div>
+            <div><dt>Linux</dt><dd><a href="https://github.com/ciembor/git-hooks-ext/releases/latest">DEB, RPM, APK, and Arch packages ↗</a></dd></div>
+            <div><dt>Container</dt><dd><code>ghcr.io/ciembor/git-hooks-ext:latest</code></dd></div>
+          </dl>
+        </section>
+
+        <section id="notes">
+          <h2>Notes</h2>
+          <p>
+            Rename detection is best-effort. A rename is emitted only when a
+            deletion and creation have one unique object-ID match within the
+            same ref namespace.
+          </p>
+          <p>
+            See the <a href="https://github.com/ciembor/git-hooks-ext/blob/main/README.md">README</a>
+            for complete installation instructions and hook arguments.
+          </p>
+        </section>
+      </article>
     </main>
 
-    <footer>
-      <span>git-hooks-ext · GPL-2.0-only</span>
-      <a href="https://github.com/ciembor/git-hooks-ext/blob/main/README.md">Full documentation ↗</a>
-    </footer>
+    <footer><span>git-hooks-ext 0.1.0</span><span>GPL-2.0-only</span></footer>
   </body>
 </html>
