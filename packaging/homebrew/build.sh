@@ -4,7 +4,7 @@ set -eu
 root=$(CDPATH= cd "$(dirname "$0")/../.." && pwd)
 . "$root/packaging/common.sh"
 package_version
-archive=$(sh "$root/packaging/source.sh")
+archive=${SOURCE_ARCHIVE:-$(sh "$root/packaging/source.sh")}
 dist=$(dirname "$archive")
 tap="$dist/homebrew-git-hooks-ext"
 mkdir -p "$tap/Formula"

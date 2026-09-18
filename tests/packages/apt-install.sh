@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-set -- /packages/*.deb
+set -- "${PACKAGE_DIR:-/packages}"/*.deb
 test "$#" -eq 1
 test -f "$1"
 package=$1

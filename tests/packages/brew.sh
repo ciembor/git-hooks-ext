@@ -13,9 +13,14 @@ if brew list --versions git-hooks-ext >/dev/null 2>&1 || \
 	printf 'Refusing to replace an existing git-hooks-ext installation.\n' >&2
 	exit 1
 fi
-sh "$root/packaging/homebrew/build.sh"
-dist=${DIST_DIR:-$root/dist}
-dist=$(CDPATH= cd "$dist" && pwd)
+if test -n "${PACKAGE_TEST_TAP_URL:-}"; then
+	tap_url=$PACKAGE_TEST_TAP_URL
+else
+	sh "$root/packaging/homebrew/build.sh"
+	dist=${DIST_DIR:-$root/dist}
+	dist=$(CDPATH= cd "$dist" && pwd)
+	tap_url="$dist/homebrew-git-hooks-ext"
+fi
 tap="git-hooks-ext/package-test-$$"
 formula="$tap/git-hooks-ext"
 tap_owned=0
@@ -32,7 +37,7 @@ cleanup() {
 	exit "$status"
 }
 trap cleanup EXIT
-brew tap --custom-remote "$tap" "$dist/homebrew-git-hooks-ext"
+brew tap --custom-remote "$tap" "$tap_url"
 tap_owned=1
 if brew help trust >/dev/null 2>&1; then
 	brew trust --formula "$formula"

@@ -35,7 +35,8 @@ TEST_REF_UPDATE_UNIT := $(TEST_BUILD_DIR)/ref_update_unit
 TEST_RUNTIME_UNIT := $(TEST_BUILD_DIR)/runtime_unit
 
 .PHONY: all clean coverage coverage-html install lint mutation test \
-	package-source package-brew package-deb test-package-brew test-package-apt
+	package-source package-brew package-deb test-package-brew test-package-apt \
+	test-release-brew test-release-apt
 
 all: $(BIN)
 
@@ -53,6 +54,12 @@ test-package-brew:
 
 test-package-apt:
 	sh tests/packages/apt.sh
+
+test-release-brew:
+	PACKAGE_TEST_TAP_URL=https://github.com/ciembor/homebrew-git-hooks-ext.git sh tests/packages/brew.sh
+
+test-release-apt:
+	sh tests/packages/apt-release.sh
 
 $(BIN): $(SRC) $(HEADERS) VERSION
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(SRC) $(LDFLAGS)

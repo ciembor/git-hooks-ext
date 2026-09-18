@@ -32,6 +32,40 @@ then fan out events such as:
 Event names are identical in Git config, classic hook filenames and dry-run
 output.
 
+## Install
+
+### Homebrew
+
+```sh
+brew tap ciembor/git-hooks-ext
+# Homebrew 7+: trust this formula (omit on older versions).
+brew trust --formula ciembor/git-hooks-ext/git-hooks-ext
+brew install ciembor/git-hooks-ext/git-hooks-ext
+```
+
+The public tap builds from the checksummed source archive in the GitHub release;
+it does not depend on local files or paths.
+
+### Debian 12 ARM64
+
+Download the package and checksums from the
+[v0.1.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.1.0):
+
+```sh
+curl -fLO https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext_0.1.0-1_arm64.deb
+curl -fLO https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/SHA256SUMS
+sha256sum --check --ignore-missing SHA256SUMS
+sudo apt install ./git-hooks-ext_0.1.0-1_arm64.deb
+```
+
+The published Debian package currently supports ARM64 only, not AMD64.
+This is a downloadable package installed with APT, not an APT repository:
+automatic upgrades via `apt upgrade` are not yet available.
+The release also contains the corresponding GPL-2.0-only source archive.
+
+After installation, run `git-hooks-ext install --legacy` in each repository
+where you want to enable the additional hook events.
+
 ## Build
 
 ```sh
@@ -64,6 +98,11 @@ local source URL and SHA-256 checksum; keep the archive available. This is a
 local tap, not a published Homebrew repository. Publishing requires replacing
 the local URL with a permanent release URL and adding the project homepage.
 On older Homebrew versions without `brew trust`, omit that command.
+
+For a release formula, set `SOURCE_ARCHIVE` to the exact archive uploaded to
+GitHub and `SOURCE_URL` to its permanent HTTPS release URL when running
+`make package-brew`. Do not recreate an already-published archive: its checksum
+must match the public asset.
 
 ### APT / Debian
 
@@ -110,6 +149,11 @@ because they modify the package-manager state or require a container engine.
 `DIST_DIR` overrides output paths; `DEBIAN_TEST_IMAGE` overrides the locally
 built Debian test image tag. The test leaves the Podman machine and image
 available for reruns; use `podman machine stop git-hooks-ext-test` when finished.
+
+`make test-release-brew` installs from the public GitHub tap and exercises the
+same installation checks. After building the Debian test image with
+`make test-package-apt`, `make test-release-apt` downloads the published `.deb`,
+verifies its checksum, installs it with APT, runs hooks and purges it in Podman.
 
 ## Source Layout
 
