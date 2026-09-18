@@ -91,25 +91,12 @@ package details, build recipes and installation tests.
 
 Supported events are:
 
-- `branch-created`
-- `branch-deleted`
-- `branch-updated`
-- `branch-renamed`
-- `remote-branch-created`
-- `remote-branch-deleted`
-- `remote-branch-updated`
-- `remote-branch-renamed`
-- `tag-created`
-- `tag-deleted`
-- `tag-updated`
-- `tag-renamed`
-- `stash-created`
-- `stash-deleted`
-- `stash-updated`
-- `note-created`
-- `note-deleted`
-- `note-updated`
-- `note-renamed`
+| Branch | Remote branch | Tag | Stash | Note |
+| --- | --- | --- | --- | --- |
+| `branch-created` | `remote-branch-created` | `tag-created` | `stash-created` | `note-created` |
+| `branch-deleted` | `remote-branch-deleted` | `tag-deleted` | `stash-deleted` | `note-deleted` |
+| `branch-updated` | `remote-branch-updated` | `tag-updated` | `stash-updated` | `note-updated` |
+| `branch-renamed` | `remote-branch-renamed` | `tag-renamed` | — | `note-renamed` |
 
 Event names are identical in Git config, classic hook filenames and dry-run
 output.
