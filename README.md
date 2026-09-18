@@ -6,9 +6,11 @@
 [![Tests](https://github.com/ciembor/git-hooks-ext/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/ciembor/git-hooks-ext/actions/workflows/tests.yml)
 [![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/ciembor/git-hooks-ext/actions/workflows/coverage.yml)
 
-[Events](#events) · [Quick Start](#quick-start) · [Install](#install) ·
+[About](#about) · [Quick Start](#quick-start) · [Install](#install) ·
 [Configuration](#advanced-configuration) · [Hook Arguments](#hook-arguments) ·
 [Debugging](#debugging) · [Development](DEVELOPMENT.md)
+
+## About
 
 Git's `reference-transaction` hook reports raw object IDs and ref names. It
 does not tell a hook that a branch was created, a tag was deleted or a ref was
@@ -17,8 +19,6 @@ renamed.
 `git-hooks-ext` turns those low-level updates into semantic events such as
 `branch-created`, `branch-deleted`, `tag-created` and `branch-renamed`, ready
 for scripts and automation.
-
-## Events
 
 Supported events are:
 
