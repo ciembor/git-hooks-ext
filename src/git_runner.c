@@ -19,6 +19,8 @@ static bool config_hooks_supported(void)
 {
 	int status;
 
+	if (coverage_fail("GHE_TEST_CONFIG_HOOKS_UNSUPPORTED"))
+		return false;
 	if (coverage_fail("GHE_TEST_CONFIG_HOOKS_SUPPORTED"))
 		return true;
 	status = system("git hook run --allow-unknown-hook-name --ignore-missing git-hooks-ext-probe -- >/dev/null 2>&1");

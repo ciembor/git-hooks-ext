@@ -32,6 +32,8 @@ test_coverage_forced_failures() {
 			assert_fails env GHE_TEST_STDIN_ERROR=1 "$bin" reference-transaction committed --dry-run
 
 		printf '%s\n' "$zero $one refs/heads/topic" |
+			env GHE_TEST_CONFIG_HOOKS_UNSUPPORTED=1 "$bin" reference-transaction committed
+		printf '%s\n' "$zero $one refs/heads/topic" |
 			assert_fails env GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 GHE_TEST_HOOK_RUN_CALLOC_FAIL=1 "$bin" reference-transaction committed
 		printf '%s\n' "$zero $one refs/heads/topic" |
 			assert_fails env GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 \
