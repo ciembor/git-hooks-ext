@@ -98,6 +98,18 @@ This is a downloadable package installed with APT, not an APT repository:
 automatic upgrades via `apt upgrade` are not yet available.
 The release also contains the corresponding GPL-2.0-only source archive.
 
+### Container Image
+
+A multi-platform image is published to GitHub Container Registry:
+
+```sh
+docker run --rm ghcr.io/ciembor/git-hooks-ext:latest --version
+```
+
+Native packages are recommended when installing hooks in a repository. The
+container image is useful for inspecting the CLI and processing input from a
+mounted or piped-in repository environment.
+
 After installing the package, enable it in each repository with the command
 matching your Git version:
 
