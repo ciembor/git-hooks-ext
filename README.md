@@ -8,7 +8,7 @@
 
 [About](#about) · [Quick Start](#quick-start) · [Install](#install) ·
 [Configuration](#advanced-configuration) · [Hook Arguments](#hook-arguments) ·
-[Development](DEVELOPMENT.md)
+[Development](DEVELOPMENT.md) · [Website ↗](https://ciembor.github.io/git-hooks-ext/)
 
 ## About
 

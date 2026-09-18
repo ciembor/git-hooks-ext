@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Semantic Git ref events from the reference-transaction hook.">
+    <meta name="theme-color" content="#f4f2eb">
+    <title>git-hooks-ext — semantic Git ref events</title>
+    <link rel="canonical" href="https://ciembor.github.io/git-hooks-ext/">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="git-hooks-ext home">
+        <span aria-hidden="true">◆</span> git-hooks-ext
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#events">Events</a>
+        <a href="#quick-start">Quick start</a>
+        <a href="https://github.com/ciembor/git-hooks-ext">GitHub ↗</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <p class="eyebrow">A small C helper for Git automation</p>
+        <h1 id="hero-title">Git ref events,<br><em>made useful.</em></h1>
+        <p class="lede">
+          Git exposes raw object IDs and ref names. <code>git-hooks-ext</code>
+          turns them into events your scripts can understand.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="#quick-start">Get started</a>
+          <a class="button" href="https://github.com/ciembor/git-hooks-ext/releases/latest">Download latest</a>
+        </div>
+      </section>
+
+      <section class="signal" aria-label="Example event transformation">
+        <div>
+          <span class="label">Git reports</span>
+          <code>0000… a84f… refs/heads/topic</code>
+        </div>
+        <span class="arrow" aria-hidden="true">→</span>
+        <div>
+          <span class="label">You receive</span>
+          <code class="accent">branch-created topic</code>
+        </div>
+      </section>
+
+      <section id="events" class="section" aria-labelledby="events-title">
+        <div class="section-heading">
+          <p class="eyebrow">One vocabulary</p>
+          <h2 id="events-title">Events for every ref.</h2>
+          <p>Use the same names as hook files, Git config events, or dry-run output.</p>
+        </div>
+        <div class="event-grid">
+          <article>
+            <h3>Branch</h3>
+            <code>branch-created</code>
+            <code>branch-deleted</code>
+            <code>branch-updated</code>
+            <code>branch-renamed</code>
+          </article>
+          <article>
+            <h3>Remote branch</h3>
+            <code>remote-branch-created</code>
+            <code>remote-branch-deleted</code>
+            <code>remote-branch-updated</code>
+            <code>remote-branch-renamed</code>
+          </article>
+          <article>
+            <h3>Tag</h3>
+            <code>tag-created</code>
+            <code>tag-deleted</code>
+            <code>tag-updated</code>
+            <code>tag-renamed</code>
+          </article>
+          <article>
+            <h3>Stash</h3>
+            <code>stash-created</code>
+            <code>stash-deleted</code>
+            <code>stash-updated</code>
+          </article>
+          <article>
+            <h3>Note</h3>
+            <code>note-created</code>
+            <code>note-deleted</code>
+            <code>note-updated</code>
+            <code>note-renamed</code>
+          </article>
+        </div>
+      </section>
+
+      <section id="quick-start" class="section quick-start" aria-labelledby="quick-title">
+        <div class="section-heading">
+          <p class="eyebrow">Three steps</p>
+          <h2 id="quick-title">From install to event.</h2>
+          <p>Use config-based hooks on Git 2.54+, or add <code>--legacy</code> on older versions.</p>
+        </div>
+        <ol class="steps">
+          <li>
+            <span>01</span>
+            <div>
+              <h3>Enable the bridge</h3>
+              <pre><code>git-hooks-ext install</code></pre>
+            </div>
+          </li>
+          <li>
+            <span>02</span>
+            <div>
+              <h3>Add an event hook</h3>
+              <pre><code>cat &gt; .git/hooks/branch-created &lt;&lt;'SH'
+#!/bin/sh
+echo "created branch: $1"
+SH
+chmod +x .git/hooks/branch-created</code></pre>
+            </div>
+          </li>
+          <li>
+            <span>03</span>
+            <div>
+              <h3>Create a branch</h3>
+              <pre><code>git branch topic
+<b>created branch: topic</b></code></pre>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="install-strip" aria-labelledby="install-title">
+        <div>
+          <p class="eyebrow">Install</p>
+          <h2 id="install-title">Pick your package.</h2>
+        </div>
+        <div class="install-links">
+          <a href="https://github.com/ciembor/homebrew-git-hooks-ext">Homebrew <span>↗</span></a>
+          <a href="https://github.com/ciembor/git-hooks-ext/releases/latest">Linux packages <span>↗</span></a>
+          <a href="https://github.com/users/ciembor/packages/container/package/git-hooks-ext">Container <span>↗</span></a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>git-hooks-ext · GPL-2.0-only</span>
+      <a href="https://github.com/ciembor/git-hooks-ext/blob/main/README.md">Full documentation ↗</a>
+    </footer>
+  </body>
+</html>
