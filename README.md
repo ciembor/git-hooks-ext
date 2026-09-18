@@ -80,6 +80,13 @@ Native package recipes are available for:
 - Arch Linux: `packaging/arch/PKGBUILD` (x86-64; not yet submitted to AUR).
 - Alpine 3.24: `packaging/alpine/APKBUILD` (APK, x86-64 / AArch64).
 
+Native binary packages and recipes are attached to the
+[v0.1.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.1.0).
+Download the file for your distribution and architecture (`uname -m`), plus
+`SHA256SUMS`, and verify it with `sha256sum --check --ignore-missing SHA256SUMS`.
+The package installation matrix passed all 11 combinations; see the
+[Podman test run](https://github.com/ciembor/git-hooks-ext/actions/runs/35344574755).
+
 These recipes use the checksummed release source. To build and test them with
 Podman on the corresponding architecture:
 
