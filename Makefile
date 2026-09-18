@@ -36,7 +36,7 @@ TEST_RUNTIME_UNIT := $(TEST_BUILD_DIR)/runtime_unit
 
 .PHONY: all clean coverage coverage-html install lint mutation test \
 	package-source package-brew package-deb test-package-brew test-package-apt \
-	test-release-brew test-release-apt
+	test-release-brew test-release-apt test-package-fedora test-package-arch test-package-alpine
 
 all: $(BIN)
 
@@ -60,6 +60,15 @@ test-release-brew:
 
 test-release-apt:
 	sh tests/packages/apt-release.sh
+
+test-package-fedora:
+	sh tests/packages/native.sh fedora
+
+test-package-arch:
+	sh tests/packages/native.sh arch
+
+test-package-alpine:
+	sh tests/packages/native.sh alpine
 
 $(BIN): $(SRC) $(HEADERS) VERSION
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(SRC) $(LDFLAGS)

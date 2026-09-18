@@ -1,0 +1,26 @@
+pkgname=git-hooks-ext
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Semantic Git hooks for reference changes'
+arch=('x86_64')
+url='https://github.com/ciembor/git-hooks-ext'
+license=('GPL-2.0-only')
+depends=('git>=2.29')
+makedepends=('gcc' 'make')
+source=("$url/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
+sha256sums=('594c70215f9a660b5d9d0281930e1cf0e6fd93f62d91460a1213d59f11159a5d')
+
+build() {
+  make -C "$srcdir"
+}
+
+check() {
+  make -C "$srcdir" test
+}
+
+package() {
+  make -C "$srcdir" install PREFIX=/usr DESTDIR="$pkgdir"
+  install -Dm644 "$srcdir/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 "$srcdir/COPYRIGHT" "$pkgdir/usr/share/licenses/$pkgname/COPYRIGHT"
+  install -Dm644 "$srcdir/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+}

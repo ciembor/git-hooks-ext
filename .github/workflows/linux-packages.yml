@@ -1,0 +1,44 @@
+name: Linux distribution packages
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  apt:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        base: [docker.io/library/debian:trixie-slim, docker.io/library/ubuntu:24.04, docker.io/library/ubuntu:26.04]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y podman
+      - name: Install published Debian package
+        env:
+          BASE: ${{ matrix.base }}
+        run: sh tests/packages/apt-compat.sh "$BASE"
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        family: [fedora, alpine, arch]
+        exclude:
+          - runner: ubuntu-24.04-arm
+            family: arch
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y podman
+      - name: Build and install native package
+        env:
+          FAMILY: ${{ matrix.family }}
+        run: sh tests/packages/native.sh "$FAMILY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.family }}-${{ matrix.runner }}
+          path: dist/${{ matrix.family }}/
+          if-no-files-found: error

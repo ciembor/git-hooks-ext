@@ -1,0 +1,12 @@
+FROM docker.io/library/alpine:3.24 AS builder
+RUN apk add --no-cache alpine-sdk git
+WORKDIR /build/git-hooks-ext
+COPY packaging/alpine/APKBUILD ./
+RUN abuild-keygen -a -n && abuild -F -r -P /output
+RUN mkdir /packages && find /output -name 'git-hooks-ext-*.apk' -exec cp {} /packages/ \; && cp APKBUILD /packages/
+
+FROM docker.io/library/alpine:3.24
+COPY --from=builder /packages /packages
+COPY tests/packages/smoke.sh tests/packages/native-install.sh /checks/
+ENV PACKAGE_FAMILY=alpine
+ENTRYPOINT ["/bin/sh", "/checks/native-install.sh"]

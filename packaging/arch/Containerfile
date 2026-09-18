@@ -1,0 +1,16 @@
+FROM docker.io/library/archlinux:base AS builder
+RUN pacman -Syu --noconfirm base-devel git && useradd -m builder
+WORKDIR /home/builder/package
+COPY --chown=builder:builder packaging/arch/PKGBUILD ./
+RUN chown builder:builder /home/builder/package
+USER builder
+RUN makepkg --noconfirm && makepkg --printsrcinfo > .SRCINFO
+USER root
+RUN mkdir /packages && cp /home/builder/package/*.pkg.tar.zst /packages/ && cp PKGBUILD .SRCINFO /packages/
+
+FROM docker.io/library/archlinux:base
+RUN pacman -Syu --noconfirm git
+COPY --from=builder /packages /packages
+COPY tests/packages/smoke.sh tests/packages/native-install.sh /checks/
+ENV PACKAGE_FAMILY=arch
+ENTRYPOINT ["/bin/sh", "/checks/native-install.sh"]
