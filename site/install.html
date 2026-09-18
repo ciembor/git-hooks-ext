@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Install git-hooks-ext on macOS and Linux.">
+    <meta name="theme-color" content="#f4f2eb">
+    <title>Install git-hooks-ext</title>
+    <link rel="canonical" href="https://ciembor.github.io/git-hooks-ext/install.html">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="wordmark" href="index.html"><span aria-hidden="true">◆</span> git-hooks-ext</a>
+        <nav aria-label="Project links">
+          <a class="active" href="install.html" aria-current="page">Install</a>
+          <a href="https://github.com/ciembor/git-hooks-ext/releases/latest">Releases</a>
+          <a href="https://github.com/ciembor/git-hooks-ext">Source ↗</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top" class="page">
+      <aside class="sidebar" aria-label="Page contents">
+        <p>Install</p>
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#homebrew">Homebrew</a>
+          <a href="#debian">Debian / Ubuntu</a>
+          <a href="#fedora">Fedora</a>
+          <a href="#arch">Arch Linux</a>
+          <a href="#alpine">Alpine</a>
+          <a href="#container">Container</a>
+          <a href="#enable">Enable hooks</a>
+        </nav>
+        <div class="sidebar-links">
+          <a href="index.html">Reference</a>
+          <a href="https://github.com/ciembor/git-hooks-ext/blob/main/README.md">README</a>
+        </div>
+      </aside>
+
+      <article class="manual">
+        <header class="manual-header">
+          <div>
+            <span class="manual-label">Installation guide</span>
+            <h1>Install</h1>
+          </div>
+          <span class="version">0.1.0</span>
+        </header>
+
+        <section id="overview">
+          <h2>Overview</h2>
+          <p>
+            Native packages install <code>git-hooks-ext</code> in your path. The
+            commands below download version 0.1.0 and verify it before installation.
+          </p>
+          <p class="release-links">
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/SHA256SUMS">SHA256SUMS</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/tag/v0.1.0">All release files</a>
+          </p>
+        </section>
+
+        <section id="homebrew">
+          <h2>macOS with Homebrew</h2>
+          <pre><code>brew tap ciembor/git-hooks-ext
+# Homebrew 7+ only
+brew trust --formula ciembor/git-hooks-ext/git-hooks-ext
+brew install ciembor/git-hooks-ext/git-hooks-ext</code></pre>
+        </section>
+
+        <section id="debian">
+          <h2>Debian and Ubuntu</h2>
+          <p class="downloads">
+            Download:
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext_0.1.0-1_amd64.deb">AMD64 .deb</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext_0.1.0-1_arm64.deb">ARM64 .deb</a>
+          </p>
+          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0
+package="git-hooks-ext_0.1.0-1_$(dpkg --print-architecture).deb"
+curl -fLO "$base/$package"
+curl -fLO "$base/SHA256SUMS"
+grep "  $package$" SHA256SUMS | sha256sum -c -
+sudo apt install "./$package"</code></pre>
+        </section>
+
+        <section id="fedora">
+          <h2>Fedora 44</h2>
+          <p class="downloads">
+            Download:
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-1.fc44.x86_64.rpm">x86-64 RPM</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-1.fc44.aarch64.rpm">AArch64 RPM</a>
+          </p>
+          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0
+package="git-hooks-ext-0.1.0-1.fc44.$(uname -m).rpm"
+curl -fLO "$base/$package"
+curl -fLO "$base/SHA256SUMS"
+grep "  $package$" SHA256SUMS | sha256sum -c -
+sudo dnf install "./$package"</code></pre>
+        </section>
+
+        <section id="arch">
+          <h2>Arch Linux</h2>
+          <p class="downloads">
+            Download:
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-1-x86_64.pkg.tar.zst">x86-64 package</a>
+          </p>
+          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0
+package=git-hooks-ext-0.1.0-1-x86_64.pkg.tar.zst
+curl -fLO "$base/$package"
+curl -fLO "$base/SHA256SUMS"
+grep "  $package$" SHA256SUMS | sha256sum -c -
+sudo pacman -U "./$package"</code></pre>
+        </section>
+
+        <section id="alpine">
+          <h2>Alpine 3.24</h2>
+          <p class="downloads">
+            Download:
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-r0-alpine3.24-x86_64.apk">x86-64 APK</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-r0-alpine3.24-aarch64.apk">AArch64 APK</a>
+          </p>
+          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0
+package="git-hooks-ext-0.1.0-r0-alpine3.24-$(apk --print-arch).apk"
+curl -fLO "$base/$package"
+curl -fLO "$base/SHA256SUMS"
+grep "  $package$" SHA256SUMS | sha256sum -c -
+sudo apk add --allow-untrusted "./$package"</code></pre>
+          <p class="method-note">The standalone APK uses a release build key that is not installed as a trusted system key.</p>
+        </section>
+
+        <section id="container">
+          <h2>Container image</h2>
+          <pre><code>docker pull ghcr.io/ciembor/git-hooks-ext:0.1.0
+docker run --rm ghcr.io/ciembor/git-hooks-ext:0.1.0 --version</code></pre>
+          <p class="method-note">The multi-platform image supports AMD64 and ARM64. Use a native package to install repository hooks on the host.</p>
+        </section>
+
+        <section id="enable">
+          <h2>Enable hooks</h2>
+          <p>After installing the native package, enable the bridge in each repository:</p>
+          <div class="after-install">
+            <pre><code>cd your-repository
+# Git 2.54+
+git-hooks-ext install
+
+# Git 2.53 and older
+git-hooks-ext install --legacy</code></pre>
+          </div>
+        </section>
+      </article>
+    </main>
+
+    <footer><span>git-hooks-ext 0.1.0</span><span>GPL-2.0-only</span></footer>
+  </body>
+</html>
