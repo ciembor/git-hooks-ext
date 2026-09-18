@@ -8,7 +8,7 @@
 
 [About](#about) · [Quick Start](#quick-start) · [Install](#install) ·
 [Configuration](#advanced-configuration) · [Hook Arguments](#hook-arguments) ·
-[Debugging](#debugging) · [Development](DEVELOPMENT.md)
+[Development](DEVELOPMENT.md)
 
 ## About
 
@@ -140,22 +140,6 @@ Rename hooks receive:
 
 By default, events are emitted only for the `committed` transaction state. This
 keeps user hooks post-factum and avoids aborting Git ref transactions.
-
-## Debugging
-
-For local development or tests, inspect events without running hooks:
-
-```sh
-printf '%s\n' \
-  '0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/heads/topic' |
-  ./git-hooks-ext reference-transaction committed --dry-run
-```
-
-Example output:
-
-```text
-branch-created topic refs/heads/topic 0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-```
 
 ## Notes
 

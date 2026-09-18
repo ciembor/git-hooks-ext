@@ -40,6 +40,22 @@ The runner prints TAP-style results, including explicit `SKIP` reasons for
 coverage-only cases, and counts executed and skipped tests separately.
 `make test`, `make coverage` and `make mutation` use the same runner.
 
+## Debugging
+
+For local development or tests, inspect events without running hooks:
+
+```sh
+printf '%s\n' \
+  '0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/heads/topic' |
+  ./git-hooks-ext reference-transaction committed --dry-run
+```
+
+Example output:
+
+```text
+branch-created topic refs/heads/topic 0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+```
+
 ## Static Analysis
 
 `make lint` runs [clang-tidy](https://clang.llvm.org/extra/clang-tidy/) on the
