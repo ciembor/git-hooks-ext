@@ -18,6 +18,20 @@ renamed.
 `branch-created`, `branch-deleted`, `tag-created` and `branch-renamed`, ready
 for scripts and automation.
 
+## Events
+
+Supported events are:
+
+| Branch | Remote branch | Tag | Stash | Note |
+| --- | --- | --- | --- | --- |
+| `branch-created` | `remote-branch-created` | `tag-created` | `stash-created` | `note-created` |
+| `branch-deleted` | `remote-branch-deleted` | `tag-deleted` | `stash-deleted` | `note-deleted` |
+| `branch-updated` | `remote-branch-updated` | `tag-updated` | `stash-updated` | `note-updated` |
+| `branch-renamed` | `remote-branch-renamed` | `tag-renamed` | — | `note-renamed` |
+
+Event names are identical in Git config, classic hook filenames and dry-run
+output.
+
 ## Quick Start
 
 Enable the extension in a Git repository and add a hook:
@@ -86,20 +100,6 @@ where you want to enable the additional hook events.
 Fedora, Arch Linux and Alpine packages are also available. See
 [Distribution and Packaging](DEVELOPMENT.md#distribution-and-packaging) for
 package details, build recipes and installation tests.
-
-## Events
-
-Supported events are:
-
-| Branch | Remote branch | Tag | Stash | Note |
-| --- | --- | --- | --- | --- |
-| `branch-created` | `remote-branch-created` | `tag-created` | `stash-created` | `note-created` |
-| `branch-deleted` | `remote-branch-deleted` | `tag-deleted` | `stash-deleted` | `note-deleted` |
-| `branch-updated` | `remote-branch-updated` | `tag-updated` | `stash-updated` | `note-updated` |
-| `branch-renamed` | `remote-branch-renamed` | `tag-renamed` | — | `note-renamed` |
-
-Event names are identical in Git config, classic hook filenames and dry-run
-output.
 
 ## Advanced Configuration
 
