@@ -242,27 +242,13 @@ plugin must use the same LLVM major version; `MULL_LLVM_VERSION` defaults to 19.
 
 ## Usage
 
-For local development or tests, inspect what would be emitted:
-
-```sh
-printf '%s\n' \
-  '0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/heads/topic' |
-  ./git-hooks-ext reference-transaction committed --dry-run
-```
-
-Example output:
-
-```text
-branch-created topic refs/heads/topic 0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-```
-
-To use classic hook files, install the bridge:
+In your Git repository, enable the additional hooks:
 
 ```sh
 git-hooks-ext install --legacy
 ```
 
-Then create executable hook files named after semantic events:
+Create a hook for branch creation:
 
 ```sh
 cat > .git/hooks/branch-created <<'SH'
@@ -272,7 +258,20 @@ SH
 chmod +x .git/hooks/branch-created
 ```
 
-Now `git branch topic` will run `.git/hooks/branch-created`.
+Create a branch:
+
+```sh
+git branch topic
+```
+
+The hook prints `created branch: topic`. Replace its contents with your own
+script; `$1` is the branch name.
+
+Run `git-hooks-ext events` to list the other hook names. Create an executable
+file with the corresponding name in `.git/hooks/` to handle that event.
+If you use `core.hooksPath`, put the files in that directory instead.
+
+## Advanced Configuration
 
 With Git 2.54+ config-based hooks, you can also configure hooks through Git
 config:
@@ -282,14 +281,7 @@ git-hooks-ext install
 git-hooks-ext add branch-created create-branch-env ./scripts/create-branch-env
 ```
 
-Run `git-hooks-ext events` to list supported event names. In classic hook-file
-mode, use those names directly under `.git/hooks/`, for example:
-
-```text
-.git/hooks/remote-branch-updated
-.git/hooks/stash-created
-.git/hooks/note-updated
-```
+## Hook Arguments
 
 When invoked, branch, remote-branch, tag, stash and note hooks receive
 positional arguments:
@@ -306,6 +298,22 @@ Rename hooks receive:
 
 By default, events are emitted only for the `committed` transaction state. This
 keeps user hooks post-factum and avoids aborting Git ref transactions.
+
+## Debugging
+
+For local development or tests, inspect events without running hooks:
+
+```sh
+printf '%s\n' \
+  '0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/heads/topic' |
+  ./git-hooks-ext reference-transaction committed --dry-run
+```
+
+Example output:
+
+```text
+branch-created topic refs/heads/topic 0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+```
 
 ## Notes
 
