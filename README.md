@@ -37,7 +37,11 @@ output.
 Enable the extension in a Git repository and add a hook:
 
 ```sh
-git-hooks-ext install --legacy
+# Git 2.54+ (config-based hooks)
+git-hooks-ext install
+
+# Git 2.53 and older (use this instead)
+# git-hooks-ext install --legacy
 
 cat > .git/hooks/branch-created <<'SH'
 #!/bin/sh
@@ -94,8 +98,16 @@ This is a downloadable package installed with APT, not an APT repository:
 automatic upgrades via `apt upgrade` are not yet available.
 The release also contains the corresponding GPL-2.0-only source archive.
 
-After installation, run `git-hooks-ext install --legacy` in each repository
-where you want to enable the additional hook events.
+After installing the package, enable it in each repository with the command
+matching your Git version:
+
+```sh
+# Git 2.54+
+git-hooks-ext install
+
+# Git 2.53 and older
+git-hooks-ext install --legacy
+```
 
 Fedora, Arch Linux and Alpine packages are also available. See
 [Distribution and Packaging](DEVELOPMENT.md#distribution-and-packaging) for
