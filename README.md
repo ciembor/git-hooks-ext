@@ -7,7 +7,8 @@
 # git-hooks-ext
 
 [About](#about) · [Quick Start](#quick-start) · [Install](#install) ·
-[Configuration](#advanced-configuration) · [Hook Arguments](#hook-arguments) ·
+[Worktrees](#worktree-lifecycle) · [Configuration](#advanced-configuration) ·
+[Hook Arguments](#hook-arguments) ·
 [Development](DEVELOPMENT.md) · [Website ↗](https://ciembor.github.io/git-hooks-ext/)
 
 ## About
@@ -17,8 +18,8 @@ does not tell a hook that a branch was created, a tag was deleted or a ref was
 renamed.
 
 `git-hooks-ext` turns those low-level updates into semantic events such as
-`branch-created`, `branch-deleted`, `tag-created` and `branch-renamed`, ready
-for scripts and automation.
+`branch-created`, `branch-deleted`, `tag-created` and `branch-renamed`. It also
+adds the worktree lifecycle events that Git does not provide.
 
 Supported events are:
 
@@ -28,6 +29,15 @@ Supported events are:
 | `branch-deleted` | `remote-branch-deleted` | `tag-deleted` | `stash-deleted` | `note-deleted` |
 | `branch-updated` | `remote-branch-updated` | `tag-updated` | `stash-updated` | `note-updated` |
 | `branch-renamed` | `remote-branch-renamed` | `tag-renamed` | — | `note-renamed` |
+
+| Worktree lifecycle |
+| --- |
+| `worktree-created` |
+| `worktree-removed` |
+| `worktree-moved` |
+| `worktree-locked` / `worktree-unlocked` |
+| `worktree-pruned` |
+| `worktree-repaired` |
 
 Event names are identical in Git config, classic hook filenames and dry-run
 output.
@@ -125,6 +135,36 @@ Fedora, Arch Linux and Alpine packages are also available. See
 [Distribution and Packaging](DEVELOPMENT.md#distribution-and-packaging) for
 package details, build recipes and installation tests.
 
+## Worktree Lifecycle
+
+Git has no native hooks for removing, moving, locking, pruning or repairing a
+worktree. Run worktree commands through `git-hooks-ext` to add those events:
+
+```sh
+git-hooks-ext worktree add -b feature ../feature
+git-hooks-ext worktree lock --reason "offline disk" ../feature
+git-hooks-ext worktree move ../feature ../feature-renamed
+git-hooks-ext worktree remove ../feature-renamed
+```
+
+All arguments are forwarded to `git worktree`. The command snapshots
+`git worktree list --porcelain -z` before and after a successful mutation and
+emits events only for observed lifecycle changes. Read-only commands are also
+forwarded, so `git-hooks-ext worktree list` behaves like `git worktree list`.
+Commands run directly as `git worktree ...` bypass this frontend and do not
+emit lifecycle events.
+
+For example, a classic hook can react to a newly created worktree:
+
+```sh
+cat >.git/hooks/worktree-created <<'SH'
+#!/bin/sh
+printf 'worktree %s created at %s\n' "$3" "$1"
+SH
+chmod +x .git/hooks/worktree-created
+git-hooks-ext worktree add -b feature ../feature
+```
+
 ## Advanced Configuration
 
 With Git 2.54+ config-based hooks, you can also configure hooks through Git
@@ -148,6 +188,25 @@ Rename hooks receive:
 
 ```text
 <old-short-name> <new-short-name> <old-ref> <new-ref> <object-value>
+```
+
+Worktree creation, removal, pruning and repair hooks receive:
+
+```text
+<path> <head-value> <branch-ref>
+```
+
+The branch ref is empty for a detached worktree. Move hooks receive:
+
+```text
+<old-path> <new-path> <head-value> <branch-ref>
+```
+
+Lock and unlock hooks receive the path and lock reason. The reason is empty
+when none was supplied:
+
+```text
+<path> <reason>
 ```
 
 By default, events are emitted only for the `committed` transaction state. This

@@ -55,6 +55,7 @@
           <pre><code>git-hooks-ext install [--local|--global|--system|--legacy]
 git-hooks-ext add [--local|--global|--system] &lt;event&gt; &lt;name&gt; &lt;command&gt; [args...]
 git-hooks-ext events
+git-hooks-ext worktree &lt;command&gt; [args...]
 git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
         </section>
 
@@ -66,6 +67,10 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
             translates that input into events such as
             <code>branch-created</code>, <code>tag-deleted</code>, and
             <code>branch-renamed</code>.
+          </p>
+          <p>
+            It also provides a frontend for semantic worktree lifecycle events
+            that Git does not expose as native hooks.
           </p>
           <div class="translation" aria-label="Example event transformation">
             <div>
@@ -101,6 +106,20 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
               </tbody>
             </table>
           </div>
+          <h3>Worktree lifecycle</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Action</th><th>Event</th></tr></thead>
+              <tbody>
+                <tr><th>Create</th><td><code>worktree-created</code></td></tr>
+                <tr><th>Remove</th><td><code>worktree-removed</code></td></tr>
+                <tr><th>Move</th><td><code>worktree-moved</code></td></tr>
+                <tr><th>Lock / unlock</th><td><code>worktree-locked</code> / <code>worktree-unlocked</code></td></tr>
+                <tr><th>Prune</th><td><code>worktree-pruned</code></td></tr>
+                <tr><th>Repair</th><td><code>worktree-repaired</code></td></tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section id="quick-start">
@@ -122,6 +141,17 @@ chmod +x .git/hooks/branch-created</code></pre>
           <h3>3. Trigger it</h3>
           <pre><code>git branch topic
 <span>created branch: topic</span></code></pre>
+
+          <h3>Worktree events</h3>
+          <p>Use the worktree frontend when lifecycle events are needed:</p>
+          <pre><code>git-hooks-ext worktree add -b feature ../feature
+git-hooks-ext worktree lock --reason "offline disk" ../feature
+git-hooks-ext worktree move ../feature ../feature-renamed
+git-hooks-ext worktree remove ../feature-renamed</code></pre>
+          <p>
+            Arguments are forwarded to <code>git worktree</code>. Events are
+            emitted after Git succeeds and the worktree state changes.
+          </p>
         </section>
 
         <section id="notes">

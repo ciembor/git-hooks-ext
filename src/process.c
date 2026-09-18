@@ -86,3 +86,71 @@ char *process_read_line(const char *command)
 		result[len - 1] = '\0';
 	return result;
 }
+
+int process_read_all(const char *command, char **output, size_t *output_len)
+{
+	FILE *pipe;
+	char *result;
+	size_t len = 0;
+	size_t capacity = 1024;
+	size_t read_len;
+
+	*output = NULL;
+	*output_len = 0;
+	pipe = popen(command, "r");
+	if (coverage_fail("GHE_TEST_READ_ALL_POPEN_FAIL")) {
+		if (pipe)
+			pclose(pipe);
+		pipe = NULL;
+	}
+	if (!pipe)
+		return 1;
+	if (coverage_fail("GHE_TEST_READ_ALL_SMALL_BUFFER"))
+		capacity = 8;
+	result = malloc(capacity + 1);
+	if (coverage_fail("GHE_TEST_READ_ALL_MALLOC_FAIL")) {
+		free(result);
+		result = NULL;
+	}
+	if (!result) {
+		perror("malloc");
+		pclose(pipe);
+		return 1;
+	}
+
+	for (;;) {
+		if (len == capacity) {
+			char *grown;
+
+			capacity *= 2;
+			if (coverage_fail("GHE_TEST_READ_ALL_REALLOC_FAIL"))
+				grown = NULL;
+			else
+				grown = realloc(result, capacity + 1);
+			if (!grown) {
+				perror("realloc");
+				free(result);
+				pclose(pipe);
+				return 1;
+			}
+			result = grown;
+		}
+		read_len = fread(result + len, 1, capacity - len, pipe);
+		len += read_len;
+		if (read_len == 0)
+			break;
+	}
+	if (ferror(pipe) || coverage_fail("GHE_TEST_READ_ALL_FREAD_FAIL")) {
+		free(result);
+		pclose(pipe);
+		return 1;
+	}
+	if (pclose(pipe) != 0 || coverage_fail("GHE_TEST_READ_ALL_PCLOSE_FAIL")) {
+		free(result);
+		return 1;
+	}
+	result[len] = '\0';
+	*output = result;
+	*output_len = len;
+	return 0;
+}

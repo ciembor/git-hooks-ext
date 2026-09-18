@@ -57,6 +57,17 @@ SH
 			assert_fails env GHE_TEST_PROCESS_SIGNALED=1 "$bin" reference-transaction committed
 		printf '%s\n' "$zero $one refs/heads/topic" |
 			assert_fails env GHE_TEST_PROCESS_UNKNOWN=1 "$bin" reference-transaction committed
+
+		assert_fails env GHE_TEST_READ_ALL_POPEN_FAIL=1 "$bin" worktree prune --dry-run
+		assert_fails env GHE_TEST_READ_ALL_MALLOC_FAIL=1 "$bin" worktree prune --dry-run
+		env GHE_TEST_READ_ALL_SMALL_BUFFER=1 "$bin" worktree prune --dry-run
+		assert_fails env GHE_TEST_READ_ALL_SMALL_BUFFER=1 \
+			GHE_TEST_READ_ALL_REALLOC_FAIL=1 "$bin" worktree prune --dry-run
+		assert_fails env GHE_TEST_READ_ALL_FREAD_FAIL=1 "$bin" worktree prune --dry-run
+		assert_fails env GHE_TEST_READ_ALL_PCLOSE_FAIL=1 "$bin" worktree prune --dry-run
+		assert_fails env GHE_TEST_WORKTREE_STRNDUP_FAIL=1 "$bin" worktree prune --dry-run
+		assert_fails env GHE_TEST_WORKTREE_REALLOC_FAIL=1 "$bin" worktree prune --dry-run
+		assert_fails env GHE_TEST_WORKTREE_CALLOC_FAIL=1 "$bin" worktree prune --dry-run
 	)
 }
 

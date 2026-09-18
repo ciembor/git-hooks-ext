@@ -16,7 +16,8 @@ MUTATION_SANITIZERS := -fsanitize=address,undefined -fno-sanitize-recover=all -f
 
 BIN := git-hooks-ext
 SRC := src/git-hooks-ext.c src/git_runner.c src/process.c src/hook_install.c \
-	src/hook_config.c src/shell_command.c src/ref_events.c src/ref_update.c
+	src/hook_config.c src/shell_command.c src/ref_events.c src/ref_update.c \
+	src/worktree.c
 HEADERS := $(wildcard src/*.h)
 LINT_SRC := $(SRC) tests/unit/ref_update_unit.c tests/unit/runtime_unit.c
 COVERAGE_DIR := coverage

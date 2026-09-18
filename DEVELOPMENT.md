@@ -23,6 +23,7 @@ make coverage
 - `process.c`: process execution and dynamically sized output line reading.
 - `git_runner.c`: Git hook paths and legacy/config-based event dispatch.
 - `ref_update.c` / `ref_events.c`: ref parsing and semantic event detection.
+- `worktree.c`: worktree command forwarding, state parsing and lifecycle events.
 
 Hook paths remain dynamically allocated through installation and execution.
 Command construction measures the required size, then writes each quoted
