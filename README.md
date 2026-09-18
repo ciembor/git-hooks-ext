@@ -6,7 +6,7 @@
 [![Tests](https://github.com/ciembor/git-hooks-ext/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/ciembor/git-hooks-ext/actions/workflows/tests.yml)
 [![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/ciembor/git-hooks-ext/actions/workflows/coverage.yml)
 
-[Quick Start](#quick-start) · [Install](#install) · [Events](#events) ·
+[Events](#events) · [Quick Start](#quick-start) · [Install](#install) ·
 [Configuration](#advanced-configuration) · [Hook Arguments](#hook-arguments) ·
 [Debugging](#debugging) · [Development](DEVELOPMENT.md)
 
