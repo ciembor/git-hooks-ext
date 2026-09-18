@@ -75,6 +75,8 @@ footer { display: flex; justify-content: space-between; padding: 24px 0 42px; bo
 
 @media (max-width: 760px) {
   .header-inner, .page, footer { width: min(100% - 28px, 1120px); }
+  .site-header nav { gap: 14px; }
+  .site-header nav a.external { display: none; }
   .page { grid-template-columns: 1fr; gap: 34px; padding-top: 34px; }
   .sidebar { position: static; }
   .sidebar > p, .sidebar-links { display: none; }

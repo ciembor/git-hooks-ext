@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Build, test, and package git-hooks-ext.">
+    <meta name="theme-color" content="#f4f2eb">
+    <title>Develop git-hooks-ext</title>
+    <link rel="canonical" href="https://ciembor.github.io/git-hooks-ext/development.html">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="wordmark" href="index.html"><span aria-hidden="true">◆</span> git-hooks-ext</a>
+        <nav aria-label="Project links">
+          <a href="install.html">Install</a>
+          <a class="active" href="development.html" aria-current="page">Development</a>
+          <a class="external" href="https://github.com/ciembor/git-hooks-ext/releases/latest">Releases</a>
+          <a class="external" href="https://github.com/ciembor/git-hooks-ext">Source ↗</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top" class="page">
+      <aside class="sidebar" aria-label="Page contents">
+        <p>Development</p>
+        <nav>
+          <a href="#build">Build</a>
+          <a href="#source-layout">Source layout</a>
+          <a href="#tests">Tests</a>
+          <a href="#debugging">Debugging</a>
+          <a href="#lint">Static analysis</a>
+          <a href="#coverage">Coverage</a>
+          <a href="#mutation">Mutation testing</a>
+          <a href="#packaging">Packaging</a>
+        </nav>
+        <div class="sidebar-links">
+          <a href="index.html">Reference</a>
+          <a href="https://github.com/ciembor/git-hooks-ext/blob/main/DEVELOPMENT.md">Source file</a>
+        </div>
+      </aside>
+
+      <article class="manual">
+        <header class="manual-header">
+          <div>
+            <span class="manual-label">Contributor guide</span>
+            <h1>Development</h1>
+          </div>
+          <span class="version">0.1.0</span>
+        </header>
+
+        <section id="build">
+          <h2>Build</h2>
+          <p>A C99 compiler, Make, and Git are enough for the regular build and test suite.</p>
+          <pre><code>git clone https://github.com/ciembor/git-hooks-ext.git
+cd git-hooks-ext
+make
+make test</code></pre>
+          <p>The binary is written to <code>./git-hooks-ext</code>. Install it under <code>/usr/local/bin</code> with:</p>
+          <pre><code>sudo make install</code></pre>
+        </section>
+
+        <section id="source-layout">
+          <h2>Source layout</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Files</th><th>Responsibility</th></tr></thead>
+              <tbody>
+                <tr><td><code>git-hooks-ext.c</code></td><td>Argument validation and CLI dispatch</td></tr>
+                <tr><td><code>hook_install.c</code></td><td>Classic hook bridge installation</td></tr>
+                <tr><td><code>hook_config.c</code></td><td>Config-based bridge and event registration</td></tr>
+                <tr><td><code>shell_command.c</code></td><td>Shell quoting and command construction</td></tr>
+                <tr><td><code>process.c</code></td><td>Process execution and output reading</td></tr>
+                <tr><td><code>git_runner.c</code></td><td>Hook paths and event dispatch</td></tr>
+                <tr><td><code>ref_update.c</code>, <code>ref_events.c</code></td><td>Ref parsing and semantic event detection</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="method-note">Production sources live in <code>src/</code>; integration and C unit tests live in <code>tests/</code>.</p>
+        </section>
+
+        <section id="tests">
+          <h2>Tests</h2>
+          <pre><code>make test</code></pre>
+          <p>
+            <code>tests/run.sh</code> launches each test in a separate shell and
+            prints TAP-style results. The same runner is used by the regular,
+            coverage, and mutation suites.
+          </p>
+        </section>
+
+        <section id="debugging">
+          <h2>Debugging</h2>
+          <p>Inspect a transaction without executing configured event hooks:</p>
+          <pre><code>printf '%s\n' \
+  '0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/heads/topic' |
+  ./git-hooks-ext reference-transaction committed --dry-run</code></pre>
+          <pre><code><span>branch-created topic refs/heads/topic 0000000000000000000000000000000000000000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</span></code></pre>
+        </section>
+
+        <section id="lint">
+          <h2>Static analysis</h2>
+          <p><code>make lint</code> runs clang-tidy on production and C test sources. Enabled warnings fail the command.</p>
+          <pre><code># macOS
+brew install llvm
+make lint
+
+# Custom installation
+make lint CLANG_TIDY=/path/to/clang-tidy</code></pre>
+        </section>
+
+        <section id="coverage">
+          <h2>Coverage</h2>
+          <p>The coverage target requires 100% line, function, and region coverage.</p>
+          <pre><code>make coverage
+make coverage-html
+open coverage/html/index.html</code></pre>
+          <p class="method-note">The text report is written to <code>coverage/report.txt</code>.</p>
+        </section>
+
+        <section id="mutation">
+          <h2>Mutation testing</h2>
+          <p>
+            Mull changes comparisons, boundaries, and negations in production
+            code, then runs the full suite. The default required score is 100%.
+          </p>
+          <pre><code>brew install llvm@19 mull-project/mull/mull@19
+make mutation</code></pre>
+          <p>
+            Reports are written to <code>mutation/</code>. To collect an initial
+            report without enforcing the threshold, run:
+          </p>
+          <pre><code>make mutation MUTATION_SCORE_THRESHOLD=0</code></pre>
+          <p class="method-note">
+            See the <a href="https://github.com/ciembor/git-hooks-ext/blob/main/tests/mutation-notes.md">mutation review notes</a>
+            for the measured result.
+          </p>
+        </section>
+
+        <section id="packaging">
+          <h2>Packaging</h2>
+          <p>Build native packages and test them in isolated environments with these targets:</p>
+          <pre><code>make package-source
+make package-brew
+make package-deb
+
+make test-package-brew
+make test-package-apt
+make test-package-fedora
+make test-package-arch
+make test-package-alpine</code></pre>
+          <p>
+            Linux package tests use Podman. Outputs are written below
+            <code>dist/</code>. See the
+            <a href="https://github.com/ciembor/git-hooks-ext/blob/main/DEVELOPMENT.md#distribution-and-packaging">complete packaging notes</a>
+            for platform requirements, release checks, and configuration variables.
+          </p>
+        </section>
+      </article>
+    </main>
+
+    <footer><span>git-hooks-ext 0.1.0</span><span>GPL-2.0-only</span></footer>
+  </body>
+</html>
