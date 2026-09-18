@@ -1,0 +1,104 @@
+#define _XOPEN_SOURCE 700
+
+#include "hook_install.h"
+
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "coverage.h"
+#include "git_runner.h"
+#include "shell_command.h"
+
+static char *installed_program(const char *argv0)
+{
+	char resolved[PATH_MAX];
+	char *program;
+
+	if (coverage_fail("GHE_TEST_INSTALLED_PROGRAM_STRDUP_FAIL"))
+		return NULL;
+	if (strchr(argv0, '/') && !coverage_fail("GHE_TEST_REALPATH_FAIL") &&
+	    realpath(argv0, resolved))
+		return strdup(resolved);
+	if (strchr(argv0, '/'))
+		return strdup(argv0);
+	program = strdup("git-hooks-ext");
+	return program;
+}
+
+static int write_bridge(const char *hook_path, const char *argv0)
+{
+	FILE *hook;
+	char *program;
+	char *quoted_program;
+
+	hook = fopen(hook_path, "w");
+	if (coverage_fail("GHE_TEST_FOPEN_FAIL")) {
+		if (hook)
+			fclose(hook);
+		hook = NULL;
+	}
+	if (!hook) {
+		perror(hook_path);
+		return 1;
+	}
+
+	program = installed_program(argv0);
+	if (!program) {
+		perror("strdup");
+		fclose(hook);
+		return 1;
+	}
+	quoted_program = shell_quote(program);
+	free(program);
+
+	if (coverage_fail("GHE_TEST_FPUTS_FAIL") ||
+	    fprintf(hook, "#!/bin/sh\nexec %s reference-transaction \"$@\"\n",
+		    quoted_program) < 0) {
+		perror(hook_path);
+		free(quoted_program);
+		fclose(hook);
+		return 1;
+	}
+	free(quoted_program);
+	if (fclose(hook) != 0 || coverage_fail("GHE_TEST_FCLOSE_FAIL")) {
+		perror(hook_path);
+		return 1;
+	}
+	if (coverage_fail("GHE_TEST_CHMOD_FAIL") || chmod(hook_path, 0755) < 0) {
+		perror(hook_path);
+		return 1;
+	}
+	return 0;
+}
+
+int install_legacy_bridge(const char *argv0)
+{
+	char *hooks_dir;
+	char *hook_path;
+	int status;
+
+	hooks_dir = git_hook_path(NULL);
+	if (!hooks_dir) {
+		fprintf(stderr, "git-hooks-ext: failed to resolve hooks path\n");
+		return 1;
+	}
+	if (coverage_fail("GHE_TEST_MKDIR_FAIL") ||
+	    (mkdir(hooks_dir, 0777) < 0 && access(hooks_dir, F_OK) != 0)) {
+		perror(hooks_dir);
+		free(hooks_dir);
+		return 1;
+	}
+	hook_path = git_hook_path_join(hooks_dir, "reference-transaction");
+	free(hooks_dir);
+	if (!hook_path) {
+		fprintf(stderr, "git-hooks-ext: failed to resolve hooks path\n");
+		return 1;
+	}
+	status = write_bridge(hook_path, argv0);
+	free(hook_path);
+	return status;
+}

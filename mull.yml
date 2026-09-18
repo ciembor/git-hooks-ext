@@ -1,0 +1,10 @@
+mutators:
+  - cxx_comparison
+  - cxx_boundary
+  - cxx_logical
+strict: true
+includePaths:
+  - '(^|/)src/.*\.c$'
+parallelization:
+  workers: 2
+  executionWorkers: 2

@@ -1,0 +1,7 @@
+.git
+dist
+coverage
+mutation
+tests/.build
+git-hooks-ext
+git-ref-events

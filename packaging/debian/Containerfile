@@ -1,0 +1,15 @@
+FROM docker.io/library/debian:bookworm-slim AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential dpkg-dev git ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /source
+COPY Makefile VERSION README.md LICENSE COPYRIGHT .containerignore ./
+COPY src ./src
+COPY tests ./tests
+COPY packaging ./packaging
+RUN make test && make package-deb
+
+FROM docker.io/library/debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates
+COPY --from=builder /source/dist/debian/ /packages/
+COPY tests/packages/smoke.sh tests/packages/apt-install.sh /checks/
+ENTRYPOINT ["/bin/sh", "/checks/apt-install.sh"]
