@@ -7,7 +7,7 @@
 [![Release](https://img.shields.io/github/v/release/ciembor/git-hooks-ext?display_name=tag&sort=semver)](https://github.com/ciembor/git-hooks-ext/releases/latest)
 [![License](https://img.shields.io/github/license/ciembor/git-hooks-ext)](LICENSE)
 [![Tests](https://github.com/ciembor/git-hooks-ext/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/ciembor/git-hooks-ext/actions/workflows/tests.yml)
-[![Coverage](https://github.com/ciembor/git-hooks-ext/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/ciembor/git-hooks-ext/actions/workflows/coverage.yml)
+[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/ciembor/git-hooks-ext/actions/workflows/coverage.yml)
 [![Lint](https://github.com/ciembor/git-hooks-ext/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ciembor/git-hooks-ext/actions/workflows/lint.yml)
 
 Git's `reference-transaction` hook reports raw object IDs and ref names. It
