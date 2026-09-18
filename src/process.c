@@ -28,7 +28,8 @@ int process_run(const char *file, char **argv)
 		perror(file);
 		return 1;
 	}
-	if (coverage_fail("GHE_TEST_WAITPID_FAIL") || waitpid(pid, &status, 0) < 0) {
+	if (coverage_fail("GHE_TEST_WAITPID_FAIL") ||
+	    waitpid(pid, &status, 0) == (pid_t)-1) {
 		perror("waitpid");
 		return 1;
 	}
@@ -71,7 +72,7 @@ char *process_read_line(const char *command)
 		pclose(pipe);
 		return NULL;
 	}
-	if (getline(&result, &capacity, pipe) < 0) {
+	if (getline(&result, &capacity, pipe) == -1) {
 		free(result);
 		pclose(pipe);
 		return NULL;
@@ -81,9 +82,8 @@ char *process_read_line(const char *command)
 		return NULL;
 	}
 
-	len = strlen(result);
-	if (len > 0 && result[len - 1] == '\n')
-		result[len - 1] = '\0';
+	len = strcspn(result, "\n");
+	result[len] = '\0';
 	return result;
 }
 

@@ -99,12 +99,11 @@ static void finish_worktree(struct worktrees *worktrees,
 	memset(worktree, 0, sizeof(*worktree));
 }
 
-static bool token_has_prefix(const char *token, size_t token_len,
-			     const char *prefix)
+static bool token_has_value(const char *token, const char *prefix)
 {
 	size_t prefix_len = strlen(prefix);
 
-	return token_len >= prefix_len && memcmp(token, prefix, prefix_len) == 0;
+	return strncmp(token, prefix, prefix_len) == 0 && token[prefix_len] != '\0';
 }
 
 static int parse_worktrees(char *data, size_t data_len,
@@ -126,21 +125,25 @@ static int parse_worktrees(char *data, size_t data_len,
 		token_len = (size_t)(nul - cursor);
 		if (token_len == 0) {
 			finish_worktree(worktrees, &current);
-		} else if (token_has_prefix(cursor, token_len, "worktree ")) {
+		} else if (strcmp(cursor, "worktree ") == 0) {
+			fprintf(stderr, "git-hooks-ext: invalid worktree list output\n");
+			free_worktree(&current);
+			return 1;
+		} else if (token_has_value(cursor, "worktree ")) {
 			if (current.path) {
 				fprintf(stderr, "git-hooks-ext: invalid worktree list output\n");
 				free_worktree(&current);
 				return 1;
 			}
 			set_field(&current.path, cursor + 9, token_len - 9);
-		} else if (token_has_prefix(cursor, token_len, "HEAD ")) {
+		} else if (token_has_value(cursor, "HEAD ")) {
 			set_field(&current.head, cursor + 5, token_len - 5);
-		} else if (token_has_prefix(cursor, token_len, "branch ")) {
+		} else if (token_has_value(cursor, "branch ")) {
 			set_field(&current.branch, cursor + 7, token_len - 7);
 		} else if (token_len == 6 && memcmp(cursor, "locked", 6) == 0) {
 			current.locked = true;
 			set_field(&current.lock_reason, "", 0);
-		} else if (token_has_prefix(cursor, token_len, "locked ")) {
+		} else if (token_has_value(cursor, "locked ")) {
 			const char *reason = cursor + 7;
 			size_t reason_len = token_len - 7;
 
@@ -351,7 +354,6 @@ static int emit_worktree_changes(const char *subcommand,
 static int run_worktree(int argc, char **argv)
 {
 	char **git_argv = calloc((size_t)argc + 3, sizeof(*git_argv));
-	int i;
 	int status;
 
 	if (coverage_fail("GHE_TEST_WORKTREE_CALLOC_FAIL")) {
@@ -364,8 +366,7 @@ static int run_worktree(int argc, char **argv)
 	}
 	git_argv[0] = "git";
 	git_argv[1] = "worktree";
-	for (i = 0; i < argc; i++)
-		git_argv[i + 2] = argv[i];
+	memcpy(git_argv + 2, argv, (size_t)argc * sizeof(*argv));
 	status = run_git(git_argv);
 	free(git_argv);
 	return status;
@@ -377,7 +378,7 @@ int cmd_worktree(int argc, char **argv)
 	struct worktrees after = { 0 };
 	int status;
 
-	if (argc < 1) {
+	if (argc == 0) {
 		fprintf(stderr, "usage: git-hooks-ext worktree <command> [args...]\n");
 		return 2;
 	}

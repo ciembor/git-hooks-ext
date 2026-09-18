@@ -107,9 +107,12 @@ test_worktree_proxies_read_only_commands() {
 	setup_worktree_repo
 	(
 		cd "$repo"
+		"$bin" worktree list >"$TEST_DIR/actual-short"
+		git worktree list >"$TEST_DIR/expected-short"
 		"$bin" worktree list --porcelain >"$TEST_DIR/actual"
 		git worktree list --porcelain >"$TEST_DIR/expected-list"
 	)
+	diff -u "$TEST_DIR/expected-short" "$TEST_DIR/actual-short"
 	diff -u "$TEST_DIR/expected-list" "$TEST_DIR/actual"
 }
 
@@ -221,12 +224,27 @@ duplicate)
 partial)
 	printf 'worktree /a\0HEAD a\0\0broken'
 	;;
+empty-path)
+	printf 'worktree \0HEAD a\0\0'
+	;;
 esac
 SH
-	for state in missing-nul duplicate partial; do
+	for state in missing-nul duplicate partial empty-path; do
 		assert_fails env PATH="$fakebin:$PATH" GHE_FAKE_STATE="$state" \
 			"$bin" worktree prune --dry-run
 	done
+}
+
+test_worktree_reads_snapshots_larger_than_initial_buffer() {
+	create_fake_git <<'SH'
+#!/bin/sh
+if test "$1 $2 $3" = "worktree list --porcelain"; then
+	printf 'worktree /'
+	awk 'BEGIN { for (i = 0; i < 3000; i++) printf "x" }'
+	printf '\0HEAD a\0branch refs/heads/main\0\0'
+fi
+SH
+	env PATH="$fakebin:$PATH" "$bin" worktree prune --dry-run
 }
 
 test_worktree_parser_accepts_complete_porcelain_forms() {
@@ -296,6 +314,7 @@ register_worktree_tests() {
 	test_expect_success "returns remove, lock and unlock hook failures" test_worktree_returns_remove_and_lock_hook_failures
 	test_expect_success "returns move and repair hook failures" test_worktree_returns_move_and_repair_hook_failures
 	test_expect_success "rejects invalid worktree snapshots" test_worktree_parser_rejects_invalid_snapshots
+	test_expect_success "reads large worktree snapshots" test_worktree_reads_snapshots_larger_than_initial_buffer
 	test_expect_success "parses all worktree porcelain forms" test_worktree_parser_accepts_complete_porcelain_forms
 	test_expect_success "reports second worktree snapshot failure" test_worktree_reports_second_snapshot_failure
 	test_expect_success "ignores unmatched worktree path changes" test_worktree_ignores_unmatched_path_changes

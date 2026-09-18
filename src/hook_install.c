@@ -56,8 +56,9 @@ static int write_bridge(const char *hook_path, const char *argv0)
 	free(program);
 
 	if (coverage_fail("GHE_TEST_FPUTS_FAIL") ||
-	    fprintf(hook, "#!/bin/sh\nexec %s reference-transaction \"$@\"\n",
-		    quoted_program) < 0) {
+	    fputs("#!/bin/sh\nexec ", hook) == EOF ||
+	    fputs(quoted_program, hook) == EOF ||
+	    fputs(" reference-transaction \"$@\"\n", hook) == EOF) {
 		perror(hook_path);
 		free(quoted_program);
 		fclose(hook);
@@ -87,7 +88,7 @@ int install_legacy_bridge(const char *argv0)
 		return 1;
 	}
 	if (coverage_fail("GHE_TEST_MKDIR_FAIL") ||
-	    (mkdir(hooks_dir, 0777) < 0 && access(hooks_dir, F_OK) != 0)) {
+	    (mkdir(hooks_dir, 0777) == -1 && access(hooks_dir, F_OK) != 0)) {
 		perror(hooks_dir);
 		free(hooks_dir);
 		return 1;

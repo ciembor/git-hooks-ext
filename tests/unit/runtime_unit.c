@@ -33,12 +33,15 @@ static int test_shell_commands(void)
 {
 	char *args[] = { "one", "", "a'b" };
 	char *quoted = shell_quote("a'b");
+	char *apostrophes = shell_quote("''''''''''''''''");
 	char *command = shell_join_command(3, args);
 	char *empty = shell_join_command(0, NULL);
 	int failed = strcmp(quoted, "'a'\\''b'") != 0 ||
+		strlen(apostrophes) != 66 ||
 		strcmp(command, "'one' '' 'a'\\''b'") != 0 || strcmp(empty, "") != 0;
 
 	free(quoted);
+	free(apostrophes);
 	free(command);
 	free(empty);
 	return failed;
