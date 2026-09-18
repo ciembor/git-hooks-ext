@@ -34,7 +34,10 @@ test_coverage_forced_failures() {
 		printf '%s\n' "$zero $one refs/heads/topic" |
 			assert_fails env GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 GHE_TEST_HOOK_RUN_CALLOC_FAIL=1 "$bin" reference-transaction committed
 		printf '%s\n' "$zero $one refs/heads/topic" |
-			assert_fails env GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 GHE_TEST_JOIN_HOOK_PATH_MALLOC_FAIL=1 "$bin" reference-transaction committed
+			assert_fails env GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 \
+				GHE_TEST_JOIN_HOOK_PATH_MALLOC_FAIL=1 \
+				GHE_TEST_HOOK_RUN_CALLOC_FAIL=1 \
+				"$bin" reference-transaction committed
 
 		"$bin" install --legacy
 		cat > .git/hooks/branch-created <<'SH'
