@@ -1,0 +1,64 @@
+name: Git compatibility
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tests/compat/**"
+      - ".github/workflows/compatibility.yml"
+  pull_request:
+    paths:
+      - "tests/compat/**"
+      - ".github/workflows/compatibility.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  reference-transaction:
+    name: Git ${{ matrix.version }} / ${{ matrix.ref_format }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 2.27.0
+            ref_format: files
+            expected: no,no,no,no,no,no
+          - version: 2.28.0
+            ref_format: files
+            expected: yes,yes,no,yes,yes,yes
+          - version: 2.30.0
+            ref_format: files
+            expected: yes,yes,no,yes,yes,yes
+          - version: 2.31.0
+            ref_format: files
+            expected: yes,no,no,yes,no,yes
+          - version: 2.39.3
+            ref_format: files
+            expected: yes,no,no,yes,no,yes
+          - version: 2.42.0
+            ref_format: files
+            expected: yes,no,no,yes,no,yes
+          - version: 2.55.0
+            ref_format: files
+            expected: yes,no,no,yes,no,yes
+          - version: 2.55.0
+            ref_format: reftable
+            expected: yes,no,no,yes,no,yes
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build Git and probe reference transactions
+        env:
+          VERSION: ${{ matrix.version }}
+          REF_FORMAT: ${{ matrix.ref_format }}
+          EXPECTED: ${{ matrix.expected }}
+        run: |
+          tests/compat/build-git.sh "$VERSION" "$REF_FORMAT" | tee result.tsv
+          actual=$(awk 'NR > 1 { print $5 }' result.tsv | paste -sd, -)
+          test "$actual" = "$EXPECTED"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: git-${{ matrix.version }}-${{ matrix.ref_format }}
+          path: result.tsv

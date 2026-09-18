@@ -41,6 +41,13 @@ The runner prints TAP-style results, including explicit `SKIP` reasons for
 coverage-only cases, and counts executed and skipped tests separately.
 `make test`, `make coverage` and `make mutation` use the same runner.
 
+`tests/compat/reference-transaction.sh` probes whether an installed Git emits
+usable payloads for real branch and tag commands. To reproduce a historical
+result, `tests/compat/build-git.sh <version> [files|reftable]` downloads and
+builds that upstream release in a temporary cache. The measured results and
+divide-and-conquer version selection are documented in
+[`tests/compat/README.md`](tests/compat/README.md).
+
 ## Debugging
 
 For local development or tests, inspect events without running hooks:

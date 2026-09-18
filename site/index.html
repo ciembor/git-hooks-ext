@@ -162,6 +162,12 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
             same ref namespace.
           </p>
           <p>
+            Git 2.28 introduces the required hook, but not every Git command
+            supplies a usable payload. See the
+            <a href="https://github.com/ciembor/git-hooks-ext/blob/main/tests/compat/README.md">Git compatibility matrix</a>
+            for measured branch and tag behavior through Git 2.55.
+          </p>
+          <p>
             See <a href="install.html">Install</a> for native packages and the
             <a href="https://github.com/ciembor/git-hooks-ext/blob/main/README.md">README</a>
             for complete hook arguments.

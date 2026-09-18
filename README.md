@@ -219,12 +219,13 @@ updates, not user intent, so a delete and create of refs pointing at the same
 object can look like a rename. A rename is emitted only when both the deletion
 and creation have a unique match within the same ref namespace.
 
-Events depend on Git actually invoking `reference-transaction`. In the tested
-Apple Git 2.39.3, `git branch -D` did not invoke it, so it cannot produce a
-`branch-deleted` event through this bridge. Integration tests verify creation
-with `git branch` and deletion with `git update-ref -d` and an explicit old OID,
-including in SHA-256 repositories. Other Git versions and ref backends may
-behave differently.
+Events depend on Git providing a usable `reference-transaction` payload. The
+hook is available from Git 2.28, but the tested versions do not report both
+sides of `git branch -m`. From Git 2.31 through 2.55, ordinary `git branch -D`
+and `git tag -d` report `zero -> zero`, so they cannot produce semantic delete
+events through this bridge. Creation and explicit `git update-ref -d` remain
+usable. See the [Git compatibility matrix](tests/compat/README.md) for tested
+versions, ref backends and the reproducible probe.
 
 ## Development
 
