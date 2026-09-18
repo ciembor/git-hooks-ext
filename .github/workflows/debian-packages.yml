@@ -8,6 +8,10 @@ on:
         required: true
         default: v0.1.0
         type: string
+      verify_public_release:
+        description: Also install the published package from GitHub Releases
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -40,6 +44,28 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y podman
       - name: Build and test Debian installation
         run: make test-package-apt
+      - name: Test published package installation
+        if: inputs.verify_public_release
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          podman run --rm -i --entrypoint /bin/sh \
+            -e "RELEASE_URL=https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG" \
+            -e "VERSION=$(cat VERSION)" \
+            localhost/git-hooks-ext-debian-test:bookworm -s <<'SH'
+          set -eu
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y --no-install-recommends curl
+          mkdir /download
+          cd /download
+          package="git-hooks-ext_${VERSION}-1_$(dpkg --print-architecture).deb"
+          curl --fail --location --retry 3 -O "$RELEASE_URL/$package"
+          curl --fail --location --retry 3 -O "$RELEASE_URL/SHA256SUMS"
+          sha256sum --check --ignore-missing SHA256SUMS
+          cp "$package" "/packages/$package"
+          /bin/sh /checks/apt-install.sh
+          SH
       - name: Export tested packages
         uses: actions/upload-artifact@v4
         with:

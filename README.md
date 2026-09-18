@@ -46,19 +46,21 @@ brew install ciembor/git-hooks-ext/git-hooks-ext
 The public tap builds from the checksummed source archive in the GitHub release;
 it does not depend on local files or paths.
 
-### Debian 12 ARM64
+### Debian 12 (AMD64 / ARM64)
 
 Download the package and checksums from the
 [v0.1.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.1.0):
 
 ```sh
-curl -fLO https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext_0.1.0-1_arm64.deb
+arch=$(dpkg --print-architecture)
+curl -fLO "https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext_0.1.0-1_${arch}.deb"
 curl -fLO https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/SHA256SUMS
 sha256sum --check --ignore-missing SHA256SUMS
-sudo apt install ./git-hooks-ext_0.1.0-1_arm64.deb
+sudo apt install "./git-hooks-ext_0.1.0-1_${arch}.deb"
 ```
 
-The published Debian package currently supports ARM64 only, not AMD64.
+Packages are available for AMD64 (Intel/AMD 64-bit) and ARM64 (AArch64).
+Other architectures are not currently published.
 This is a downloadable package installed with APT, not an APT repository:
 automatic upgrades via `apt upgrade` are not yet available.
 The release also contains the corresponding GPL-2.0-only source archive.
@@ -119,6 +121,12 @@ license and documentation are included in the package outputs. Distribute
 the corresponding source archive alongside the binary package.
 `DEB_MAINTAINER` can override the explicitly local default package maintainer.
 This builds a local-installable `.deb`; no public APT repository is configured.
+
+The `Debian packages` GitHub Actions workflow builds a selected release tag on
+native AMD64 and ARM64 runners. Each runner uses Podman with Debian 12 to run
+the regular suite, build its native package, and test APT installation, actual
+hooks and removal in a separate container. Tested `.deb` files are retained as
+workflow artifacts; publication to a release is a separate step.
 
 ### Installation Tests
 

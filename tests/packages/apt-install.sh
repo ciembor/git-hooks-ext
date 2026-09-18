@@ -6,6 +6,7 @@ test "$#" -eq 1
 test -f "$1"
 package=$1
 version=$(dpkg-deb -f "$package" Version)
+test "$(dpkg-deb -f "$package" Architecture)" = "$(dpkg --print-architecture)"
 export DEBIAN_FRONTEND=noninteractive
 apt-get install -y "$package"
 test "$(dpkg-query -W -f='${Status}' git-hooks-ext)" = 'install ok installed'
