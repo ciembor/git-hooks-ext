@@ -15,9 +15,18 @@ case "$PACKAGE_FAMILY" in
 esac
 /bin/sh /checks/smoke.sh /usr/bin/git-hooks-ext "${PACKAGE_VERSION:?Expected package version required}"
 case "$PACKAGE_FAMILY" in
-  fedora) dnf remove -y git-hooks-ext; ! rpm -q git-hooks-ext ;;
-  arch) pacman -R --noconfirm git-hooks-ext; ! pacman -Q git-hooks-ext ;;
-  alpine) apk del git-hooks-ext; ! apk info -e git-hooks-ext ;;
+  fedora)
+    dnf remove -y git-hooks-ext
+    if rpm -q git-hooks-ext; then exit 1; fi
+    ;;
+  arch)
+    pacman -R --noconfirm git-hooks-ext
+    if pacman -Q git-hooks-ext; then exit 1; fi
+    ;;
+  alpine)
+    apk del git-hooks-ext
+    if apk info -e git-hooks-ext; then exit 1; fi
+    ;;
 esac
 test ! -e /usr/bin/git-hooks-ext
 printf '%s install, hooks and removal passed.\n' "$PACKAGE_FAMILY"
