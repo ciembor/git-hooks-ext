@@ -181,11 +181,11 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
                 <tr><th scope="row"><code>branch-updated</code></th><td><code>git commit</code></td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>branch-deleted</code></th><td><code>git branch -D topic</code></td><td><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
                 <tr><th scope="row"><code>branch-deleted</code></th><td><code>git update-ref -d refs/heads/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>branch-renamed</code></th><td><code>git branch -m old new</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code></td></tr>
+                <tr><th scope="row"><code>branch-renamed</code></th><td><code>git branch -m old new</code></td><td class="status-no">❌</td></tr>
                 <tr><th scope="row"><code>branch-renamed</code></th><td><code>git update-ref --stdin</code> (heads)</td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-created</code></th><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-updated</code></th><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git remote prune origin</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git remote prune origin</code></td><td class="status-no">❌</td></tr>
                 <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git update-ref -d refs/remotes/origin/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git remote rename origin upstream</code></td><td>Git <code>≥ 2.55</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git update-ref --stdin</code> (remotes)</td><td>Git <code>≥ 2.28</code></td></tr>
@@ -195,12 +195,12 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
                 <tr><th scope="row"><code>tag-deleted</code></th><td><code>git update-ref -d refs/tags/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>tag-renamed</code></th><td><code>git update-ref --stdin</code> (tags)</td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>stash-created</code></th><td>first <code>git stash push</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>stash-updated</code></th><td>second <code>git stash push</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code>; emits <code>stash-created</code></td></tr>
+                <tr><th scope="row"><code>stash-updated</code></th><td>second <code>git stash push</code></td><td class="status-no">❌</td></tr>
                 <tr><th scope="row"><code>stash-updated</code></th><td><code>git update-ref refs/stash</code></td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>stash-deleted</code></th><td><code>git stash clear</code></td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>note-created</code></th><td><code>git notes add</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes append</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code>; emits <code>note-created</code></td></tr>
-                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes remove</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code>; emits <code>note-created</code></td></tr>
+                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes append</code></td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes remove</code></td><td class="status-no">❌</td></tr>
                 <tr><th scope="row"><code>note-updated</code></th><td><code>git update-ref refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>note-deleted</code></th><td><code>git update-ref -d refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>note-renamed</code></th><td><code>git update-ref --stdin</code> (notes)</td><td>Git <code>≥ 2.28</code></td></tr>

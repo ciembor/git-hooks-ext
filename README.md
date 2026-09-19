@@ -256,11 +256,11 @@ does not run these hooks.
 | `branch-updated` | `git commit` | Git `≥ 2.28` |
 | `branch-deleted` | `git branch -D topic` | `2.28 ≤ Git ≤ 2.30` |
 | `branch-deleted` | `git update-ref -d refs/heads/topic` | Git `≥ 2.28` |
-| `branch-renamed` | `git branch -m old new` | Not observed for `2.28 ≤ Git ≤ 2.55` |
+| `branch-renamed` | `git branch -m old new` | ❌ |
 | `branch-renamed` | `git update-ref --stdin` (heads) | Git `≥ 2.28` |
 | `remote-branch-created` | `git fetch origin` | Git `≥ 2.28` |
 | `remote-branch-updated` | `git fetch origin` | Git `≥ 2.28` |
-| `remote-branch-deleted` | `git remote prune origin` | Not observed for `2.28 ≤ Git ≤ 2.55` |
+| `remote-branch-deleted` | `git remote prune origin` | ❌ |
 | `remote-branch-deleted` | `git update-ref -d refs/remotes/origin/topic` | Git `≥ 2.28` |
 | `remote-branch-renamed` | `git remote rename origin upstream` | Git `≥ 2.55` |
 | `remote-branch-renamed` | `git update-ref --stdin` (remotes) | Git `≥ 2.28` |
@@ -270,12 +270,12 @@ does not run these hooks.
 | `tag-deleted` | `git update-ref -d refs/tags/topic` | Git `≥ 2.28` |
 | `tag-renamed` | `git update-ref --stdin` (tags) | Git `≥ 2.28` |
 | `stash-created` | first `git stash push` | Git `≥ 2.28` |
-| `stash-updated` | second `git stash push` | Not observed for `2.28 ≤ Git ≤ 2.55`; emits `stash-created` |
+| `stash-updated` | second `git stash push` | ❌ |
 | `stash-updated` | `git update-ref refs/stash` | Git `≥ 2.28` |
 | `stash-deleted` | `git stash clear` | Git `≥ 2.28` |
 | `note-created` | `git notes add` | Git `≥ 2.28` |
-| `note-updated` | `git notes append` | Not observed for `2.28 ≤ Git ≤ 2.55`; emits `note-created` |
-| `note-updated` | `git notes remove` | Not observed for `2.28 ≤ Git ≤ 2.55`; emits `note-created` |
+| `note-updated` | `git notes append` | ❌ |
+| `note-updated` | `git notes remove` | ❌ |
 | `note-updated` | `git update-ref refs/notes/topic` | Git `≥ 2.28` |
 | `note-deleted` | `git update-ref -d refs/notes/topic` | Git `≥ 2.28` |
 | `note-renamed` | `git update-ref --stdin` (notes) | Git `≥ 2.28` |
