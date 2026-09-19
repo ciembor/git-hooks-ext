@@ -9,7 +9,7 @@ on:
       version:
         description: Container version to publish
         required: true
-        default: 0.1.0
+        default: 0.2.0
         type: string
 
 permissions:

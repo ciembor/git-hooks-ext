@@ -43,18 +43,18 @@
             <span class="manual-label">Installation guide</span>
             <h1>Install</h1>
           </div>
-          <span class="version">0.1.0</span>
+          <span class="version">0.2.0</span>
         </header>
 
         <section id="overview">
           <h2>Overview</h2>
           <p>
             Native packages install <code>git-hooks-ext</code> in your path. The
-            commands below download version 0.1.0 and verify it before installation.
+            commands below download version 0.2.0 and verify it before installation.
           </p>
           <p class="release-links">
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/SHA256SUMS">SHA256SUMS</a>
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/tag/v0.1.0">All release files</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0/SHA256SUMS">SHA256SUMS</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/tag/v0.2.0">All release files</a>
           </p>
         </section>
 
@@ -70,11 +70,11 @@ brew install ciembor/git-hooks-ext/git-hooks-ext</code></pre>
           <h2>Debian and Ubuntu</h2>
           <p class="downloads">
             Download:
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext_0.1.0-1_amd64.deb">AMD64 .deb</a>
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext_0.1.0-1_arm64.deb">ARM64 .deb</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0/git-hooks-ext_0.2.0-1_amd64.deb">AMD64 .deb</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0/git-hooks-ext_0.2.0-1_arm64.deb">ARM64 .deb</a>
           </p>
-          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0
-package="git-hooks-ext_0.1.0-1_$(dpkg --print-architecture).deb"
+          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0
+package="git-hooks-ext_0.2.0-1_$(dpkg --print-architecture).deb"
 curl -fLO "$base/$package"
 curl -fLO "$base/SHA256SUMS"
 grep "  $package$" SHA256SUMS | sha256sum -c -
@@ -85,11 +85,11 @@ sudo apt install "./$package"</code></pre>
           <h2>Fedora 44</h2>
           <p class="downloads">
             Download:
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-1.fc44.x86_64.rpm">x86-64 RPM</a>
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-1.fc44.aarch64.rpm">AArch64 RPM</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0/git-hooks-ext-0.2.0-1.fc44.x86_64.rpm">x86-64 RPM</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0/git-hooks-ext-0.2.0-1.fc44.aarch64.rpm">AArch64 RPM</a>
           </p>
-          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0
-package="git-hooks-ext-0.1.0-1.fc44.$(uname -m).rpm"
+          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0
+package="git-hooks-ext-0.2.0-1.fc44.$(uname -m).rpm"
 curl -fLO "$base/$package"
 curl -fLO "$base/SHA256SUMS"
 grep "  $package$" SHA256SUMS | sha256sum -c -
@@ -100,10 +100,10 @@ sudo dnf install "./$package"</code></pre>
           <h2>Arch Linux</h2>
           <p class="downloads">
             Download:
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-1-x86_64.pkg.tar.zst">x86-64 package</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0/git-hooks-ext-0.2.0-1-x86_64.pkg.tar.zst">x86-64 package</a>
           </p>
-          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0
-package=git-hooks-ext-0.1.0-1-x86_64.pkg.tar.zst
+          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0
+package=git-hooks-ext-0.2.0-1-x86_64.pkg.tar.zst
 curl -fLO "$base/$package"
 curl -fLO "$base/SHA256SUMS"
 grep "  $package$" SHA256SUMS | sha256sum -c -
@@ -114,11 +114,11 @@ sudo pacman -U "./$package"</code></pre>
           <h2>Alpine 3.24</h2>
           <p class="downloads">
             Download:
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-r0-alpine3.24-x86_64.apk">x86-64 APK</a>
-            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0/git-hooks-ext-0.1.0-r0-alpine3.24-aarch64.apk">AArch64 APK</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0/git-hooks-ext-0.2.0-r0-alpine3.24-x86_64.apk">x86-64 APK</a>
+            <a href="https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0/git-hooks-ext-0.2.0-r0-alpine3.24-aarch64.apk">AArch64 APK</a>
           </p>
-          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.1.0
-package="git-hooks-ext-0.1.0-r0-alpine3.24-$(apk --print-arch).apk"
+          <pre><code>base=https://github.com/ciembor/git-hooks-ext/releases/download/v0.2.0
+package="git-hooks-ext-0.2.0-r0-alpine3.24-$(apk --print-arch).apk"
 curl -fLO "$base/$package"
 curl -fLO "$base/SHA256SUMS"
 grep "  $package$" SHA256SUMS | sha256sum -c -
@@ -128,8 +128,8 @@ sudo apk add --allow-untrusted "./$package"</code></pre>
 
         <section id="container">
           <h2>Container image</h2>
-          <pre><code>docker pull ghcr.io/ciembor/git-hooks-ext:0.1.0
-docker run --rm ghcr.io/ciembor/git-hooks-ext:0.1.0 --version</code></pre>
+          <pre><code>docker pull ghcr.io/ciembor/git-hooks-ext:0.2.0
+docker run --rm ghcr.io/ciembor/git-hooks-ext:0.2.0 --version</code></pre>
           <p class="method-note">The multi-platform image supports AMD64 and ARM64. Use a native package to install repository hooks on the host.</p>
         </section>
 
@@ -148,6 +148,6 @@ git-hooks-ext install --legacy</code></pre>
       </article>
     </main>
 
-    <footer><span>git-hooks-ext 0.1.0</span><span>GPL-2.0-only</span></footer>
+    <footer><span>git-hooks-ext 0.2.0</span><span>GPL-2.0-only</span></footer>
   </body>
 </html>

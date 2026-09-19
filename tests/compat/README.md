@@ -39,51 +39,10 @@ events and Git versions before 2.39 in this matrix cannot run the worktree
 frontend because they lack `git worktree list --porcelain -z`. The Apple Git
 2.39.3 row is measured locally, separately from the upstream CI matrix.
 
-## Hook availability by Git version
-
-Measured on 2026-09-19. ✅ means the end-to-end test observed the exact hook
-name and arguments after a real Git operation; ❌ means no usable event was
-produced. For ref hooks, the test uses real `git update-ref` transactions
-(including atomic renames), because Git's higher-level commands do not always
-supply usable old and new object IDs. A green check therefore does **not** mean
-every Git command that changes that ref emits the event. Worktree hooks are
-tested through `git-hooks-ext worktree`. Each column uses the files ref backend
-unless marked `reftable`.
-
-| Hook | 2.27 | 2.28 | 2.29 | 2.30 | 2.31 | 2.35 | 2.39.3 | 2.39.3 Apple | 2.42 | 2.55 | 2.55 reftable |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| `branch-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `branch-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `branch-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `branch-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `remote-branch-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `remote-branch-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `remote-branch-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `remote-branch-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `tag-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `tag-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `tag-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `tag-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `stash-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `stash-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `stash-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `note-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `note-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `note-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `note-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `worktree-created` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `worktree-removed` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `worktree-moved` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `worktree-locked` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `worktree-unlocked` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `worktree-pruned` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `worktree-repaired` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-The worktree frontend cannot run on the tested Git 2.27–2.35 releases because
-they reject `git worktree list --porcelain -z`. Git 2.27 does not call
-`reference-transaction`, so none of the ref hooks fire.
-
 ## Commands and emitted events
+
+Measured on 2026-09-19. The columns use the files ref backend unless marked
+`reftable`.
 
 This matrix tests the named command and expected hook with exact arguments. ✅
 means that hook fired; ❌ means it did not, even if the Git command succeeded.
