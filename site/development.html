@@ -70,6 +70,7 @@ make test</code></pre>
                 <tr><td><code>process.c</code></td><td>Process execution and output reading</td></tr>
                 <tr><td><code>git_runner.c</code></td><td>Hook paths and event dispatch</td></tr>
                 <tr><td><code>ref_update.c</code>, <code>ref_events.c</code></td><td>Ref parsing and semantic event detection</td></tr>
+                <tr><td><code>worktree.c</code></td><td>Worktree command forwarding and lifecycle events</td></tr>
               </tbody>
             </table>
           </div>
@@ -83,6 +84,11 @@ make test</code></pre>
             <code>tests/run.sh</code> launches each test in a separate shell and
             prints TAP-style results. The same runner is used by the regular,
             coverage, and mutation suites.
+          </p>
+          <p>
+            The <a href="https://github.com/ciembor/git-hooks-ext/blob/main/tests/compat/README.md#hook-availability-by-git-version">hook-by-Git-version matrix</a>
+            checks every event against real Git commands across selected releases,
+            alongside the raw reference-transaction probe.
           </p>
         </section>
 

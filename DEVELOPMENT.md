@@ -23,6 +23,7 @@ make coverage
 - `process.c`: process execution and dynamically sized output line reading.
 - `git_runner.c`: Git hook paths and legacy/config-based event dispatch.
 - `ref_update.c` / `ref_events.c`: ref parsing and semantic event detection.
+- `worktree.c`: worktree command forwarding, state parsing and lifecycle events.
 
 Hook paths remain dynamically allocated through installation and execution.
 Command construction measures the required size, then writes each quoted
@@ -39,6 +40,26 @@ grouped by behavior in `tests/integration/`. C unit tests live in `tests/unit/`.
 The runner prints TAP-style results, including explicit `SKIP` reasons for
 coverage-only cases, and counts executed and skipped tests separately.
 `make test`, `make coverage` and `make mutation` use the same runner.
+
+`tests/integration/git_e2e.sh` installs the bridge in real repositories,
+executes actual Git commands and verifies event hook arguments. It covers
+branch creation and commit updates, tag creation and force updates, fetch of
+remote branch creation and updates, notes and stash creation, an atomic
+`update-ref --stdin` rename, explicit deletion, and a config-based hook on
+Git 2.54+. `tests/integration/ref_events.sh` separately exercises the parser
+with supplied transactions; its synthetic rename cases are not evidence that
+`git branch -m` emits a complete transaction. Git versions where regular
+branch/tag deletions have unusable payloads are checked by the compatibility
+matrix instead of being treated as passing event delivery. The matrix also
+checks real `fetch`, `remote prune`, `remote rename`, `notes` and `stash`
+commands, including cases where Git emits a misleading event or none at all.
+
+`tests/compat/reference-transaction.sh` probes whether an installed Git emits
+usable payloads for real branch and tag commands. To reproduce a historical
+result, `tests/compat/build-git.sh <version> [files|reftable]` downloads and
+builds that upstream release in a temporary cache. The measured results and
+divide-and-conquer version selection are documented in
+[`tests/compat/README.md`](tests/compat/README.md).
 
 ## Debugging
 

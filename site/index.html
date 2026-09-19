@@ -32,6 +32,7 @@
           <a href="#events">Events</a>
           <a href="#quick-start">Quick start</a>
           <a href="install.html">Install ↗</a>
+          <a href="#compatibility">Compatibility</a>
           <a href="#notes">Notes</a>
         </nav>
       </aside>
@@ -55,6 +56,7 @@
           <pre><code>git-hooks-ext install [--local|--global|--system|--legacy]
 git-hooks-ext add [--local|--global|--system] &lt;event&gt; &lt;name&gt; &lt;command&gt; [args...]
 git-hooks-ext events
+git-hooks-ext worktree &lt;command&gt; [args...]
 git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
         </section>
 
@@ -66,6 +68,10 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
             translates that input into events such as
             <code>branch-created</code>, <code>tag-deleted</code>, and
             <code>branch-renamed</code>.
+          </p>
+          <p>
+            It also provides a frontend for semantic worktree lifecycle events
+            that Git does not expose as native hooks.
           </p>
           <div class="translation" aria-label="Example event transformation">
             <div>
@@ -101,6 +107,20 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
               </tbody>
             </table>
           </div>
+          <h3>Worktree lifecycle</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Action</th><th>Event</th></tr></thead>
+              <tbody>
+                <tr><th>Create</th><td><code>worktree-created</code></td></tr>
+                <tr><th>Remove</th><td><code>worktree-removed</code></td></tr>
+                <tr><th>Move</th><td><code>worktree-moved</code></td></tr>
+                <tr><th>Lock / unlock</th><td><code>worktree-locked</code> / <code>worktree-unlocked</code></td></tr>
+                <tr><th>Prune</th><td><code>worktree-pruned</code></td></tr>
+                <tr><th>Repair</th><td><code>worktree-repaired</code></td></tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section id="quick-start">
@@ -122,6 +142,128 @@ chmod +x .git/hooks/branch-created</code></pre>
           <h3>3. Trigger it</h3>
           <pre><code>git branch topic
 <span>created branch: topic</span></code></pre>
+
+          <h3>Worktree events</h3>
+          <p>Use the worktree frontend when lifecycle events are needed:</p>
+          <pre><code>git-hooks-ext worktree add -b feature ../feature
+git-hooks-ext worktree lock --reason "offline disk" ../feature
+git-hooks-ext worktree move ../feature ../feature-renamed
+git-hooks-ext worktree remove ../feature-renamed</code></pre>
+          <p>
+            Arguments are forwarded to <code>git worktree</code>. Events are
+            emitted after Git succeeds and the worktree state changes.
+          </p>
+        </section>
+
+        <section id="compatibility">
+          <h2>Compatibility</h2>
+          <p>
+            Measured on 2026-09-19. ✅ means the end-to-end test observed the exact
+            hook and arguments; ❌ means it did not. Ref events below use real
+            <code>git update-ref</code> transactions, including atomic renames.
+            Worktree events use <code>git-hooks-ext worktree</code>. All columns
+            use the files ref backend unless marked <code>reftable</code>.
+          </p>
+          <h3>Hooks by Git version</h3>
+          <div class="table-wrap">
+            <table class="compatibility-table" aria-label="Hook availability by Git version">
+              <thead><tr><th scope="col">Hook</th><th scope="col">2.27</th><th scope="col">2.28</th><th scope="col">2.29</th><th scope="col">2.30</th><th scope="col">2.31</th><th scope="col">2.35</th><th scope="col">2.39.3</th><th scope="col">2.39.3 Apple</th><th scope="col">2.42</th><th scope="col">2.55</th><th scope="col">2.55 reftable</th></tr></thead>
+              <tbody>
+                <tr><th scope="row"><code>branch-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>branch-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>branch-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>branch-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>remote-branch-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>remote-branch-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>remote-branch-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>remote-branch-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>tag-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>tag-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>tag-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>tag-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>stash-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>stash-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>stash-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>note-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>note-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>note-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>note-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>worktree-created</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>worktree-removed</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>worktree-moved</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>worktree-locked</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>worktree-unlocked</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>worktree-pruned</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>worktree-repaired</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Git 2.27 does not invoke <code>reference-transaction</code> for these
+            operations. The tested Git 2.27–2.35 releases cannot run the worktree
+            frontend because they reject <code>git worktree list --porcelain -z</code>.
+          </p>
+          <h3>Commands and emitted events</h3>
+          <p>
+            This table checks the named command and expected hook with exact
+            arguments. ✅ means that hook fired; ❌ means it did not, even if
+            Git succeeded. Direct <code>update-ref</code> commands show where
+            an event remains reachable when a higher-level command omits usable
+            transaction data. The worktree rows use the extension's frontend.
+          </p>
+          <div class="table-wrap">
+            <table class="compatibility-table" aria-label="Event delivery from Git commands by version">
+              <thead><tr><th scope="col">Command → hook</th><th scope="col">2.27</th><th scope="col">2.28</th><th scope="col">2.29</th><th scope="col">2.30</th><th scope="col">2.31</th><th scope="col">2.35</th><th scope="col">2.39.3</th><th scope="col">2.39.3 Apple</th><th scope="col">2.42</th><th scope="col">2.55</th><th scope="col">2.55 reftable</th></tr></thead>
+              <tbody>
+                <tr><th scope="row"><code>git branch topic</code> → <code>branch-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git commit</code> → <code>branch-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git branch -D topic</code> → <code>branch-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>git update-ref -d refs/heads/topic</code> → <code>branch-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git branch -m old new</code> → <code>branch-renamed</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>git update-ref --stdin</code> (heads) → <code>branch-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git fetch origin</code> → <code>remote-branch-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git fetch origin</code> → <code>remote-branch-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git remote prune origin</code> → <code>remote-branch-deleted</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>git update-ref -d refs/remotes/origin/topic</code> → <code>remote-branch-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git remote rename origin upstream</code> → <code>remote-branch-renamed</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git update-ref --stdin</code> (remotes) → <code>remote-branch-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git tag v1</code> → <code>tag-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git tag -f v1</code> → <code>tag-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git tag -d v1</code> → <code>tag-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>git update-ref -d refs/tags/topic</code> → <code>tag-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git update-ref --stdin</code> (tags) → <code>tag-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row">first <code>git stash push</code> → <code>stash-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row">second <code>git stash push</code> → <code>stash-updated</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>git update-ref refs/stash</code> → <code>stash-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git stash clear</code> → <code>stash-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git notes add</code> → <code>note-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git notes append</code> → <code>note-updated</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>git notes remove</code> → <code>note-updated</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>git update-ref refs/notes/topic</code> → <code>note-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git update-ref -d refs/notes/topic</code> → <code>note-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git update-ref --stdin</code> (notes) → <code>note-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git-hooks-ext worktree add</code> → <code>worktree-created</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git-hooks-ext worktree remove</code> → <code>worktree-removed</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git-hooks-ext worktree move</code> → <code>worktree-moved</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git-hooks-ext worktree lock</code> → <code>worktree-locked</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git-hooks-ext worktree unlock</code> → <code>worktree-unlocked</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git-hooks-ext worktree prune</code> → <code>worktree-pruned</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>git-hooks-ext worktree repair</code> → <code>worktree-repaired</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            <code>git remote prune</code> removes the tracking ref without a
+            semantic deletion. In these versions, <code>git notes append</code>,
+            <code>git notes remove</code>, and a second <code>git stash push</code>
+            emit a <em>created</em> event instead of the expected <em>updated</em>
+            event.
+          </p>
+          <p class="method-note">
+            See the <a href="https://github.com/ciembor/git-hooks-ext/blob/main/tests/compat/README.md">compatibility notes</a>
+            for the test method and raw transaction results. Apple Git 2.39.3
+            was measured locally; the other columns run in the CI matrix.
+          </p>
         </section>
 
         <section id="notes">
@@ -130,6 +272,12 @@ chmod +x .git/hooks/branch-created</code></pre>
             Rename detection is best-effort. A rename is emitted only when a
             deletion and creation have one unique object-ID match within the
             same ref namespace.
+          </p>
+          <p>
+            Git 2.28 introduces the required hook, but not every Git command
+            supplies a usable payload. See the
+            <a href="#compatibility">hook-by-Git-version matrix</a>
+            for measured event availability and command behavior through Git 2.55.
           </p>
           <p>
             See <a href="install.html">Install</a> for native packages and the

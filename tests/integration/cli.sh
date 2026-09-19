@@ -5,6 +5,8 @@ test_events_command_lists_supported_events() {
 	assert_has_line stash-created "$TEST_DIR/events"
 	assert_has_line note-updated "$TEST_DIR/events"
 	assert_has_line tag-renamed "$TEST_DIR/events"
+	assert_has_line worktree-created "$TEST_DIR/events"
+	assert_has_line worktree-repaired "$TEST_DIR/events"
 }
 
 test_events_rejects_extra_args() {

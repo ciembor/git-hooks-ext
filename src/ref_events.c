@@ -45,6 +45,11 @@ static int emit_update(bool dry_run, struct ref_update *update)
 	return emit_hook_event(dry_run, event, 4, args);
 }
 
+static bool changes_value(const struct ref_update *update)
+{
+	return strcmp(update->old_value, update->new_value) != 0;
+}
+
 static struct ref_update *unique_rename_target(struct updates *updates,
 					       struct ref_update *deleted)
 {
@@ -82,7 +87,8 @@ int process_ref_events(struct updates *updates, bool dry_run)
 	for (i = 0; i < updates->len; i++) {
 		struct ref_update *deleted = &updates->items[i];
 
-		if (deleted->consumed || deleted->update_kind != UPDATE_DELETE ||
+		if (deleted->consumed || !changes_value(deleted) ||
+		    deleted->update_kind != UPDATE_DELETE ||
 		    deleted->ref_kind == REF_OTHER)
 			continue;
 
@@ -97,7 +103,8 @@ int process_ref_events(struct updates *updates, bool dry_run)
 	for (i = 0; i < updates->len; i++) {
 		struct ref_update *update = &updates->items[i];
 
-		if (update->consumed || update->ref_kind == REF_OTHER)
+		if (update->consumed || !changes_value(update) ||
+		    update->ref_kind == REF_OTHER)
 			continue;
 		status = emit_update(dry_run, update);
 		if (status)

@@ -9,6 +9,7 @@
 #include "hook_install.h"
 #include "ref_events.h"
 #include "ref_update.h"
+#include "worktree.h"
 
 static void usage(FILE *stream)
 {
@@ -16,6 +17,7 @@ static void usage(FILE *stream)
 		"usage: git-hooks-ext reference-transaction <state> [--dry-run]\n"
 		"       git-hooks-ext install [--local|--global|--system|--legacy]\n"
 		"       git-hooks-ext add [--local|--global|--system] <event> <name> <command> [args...]\n"
+			"       git-hooks-ext worktree <command> [args...]\n"
 			"       git-hooks-ext events\n"
 			"       git-hooks-ext --version\n");
 }
@@ -40,6 +42,13 @@ static const char *supported_events[] = {
 	"note-deleted",
 	"note-updated",
 	"note-renamed",
+	"worktree-created",
+	"worktree-removed",
+	"worktree-moved",
+	"worktree-locked",
+	"worktree-unlocked",
+	"worktree-pruned",
+	"worktree-repaired",
 	NULL
 };
 
@@ -174,6 +183,8 @@ int main(int argc, char **argv)
 		return cmd_add(argc - 2, argv + 2);
 	if (strcmp(argv[1], "events") == 0)
 		return cmd_events(argc - 2, argv + 2);
+	if (strcmp(argv[1], "worktree") == 0)
+		return cmd_worktree(argc - 2, argv + 2);
 
 	usage(stderr);
 	return 2;
