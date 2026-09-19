@@ -27,8 +27,6 @@ jobs:
     name: Git ${{ matrix.version }} / ${{ matrix.ref_format }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    env:
-      GHE_COMPAT_CACHE: ${{ runner.temp }}/git-hooks-ext-git-compat
     strategy:
       fail-fast: false
       matrix:
@@ -67,6 +65,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Build Git and probe reference transactions
         env:
+          GHE_COMPAT_CACHE: ${{ runner.temp }}/git-hooks-ext-git-compat
           VERSION: ${{ matrix.version }}
           REF_FORMAT: ${{ matrix.ref_format }}
           EXPECTED: ${{ matrix.expected }}
@@ -76,6 +75,7 @@ jobs:
           test "$actual" = "$EXPECTED"
       - name: Build helper and run real Git end-to-end events
         env:
+          GHE_COMPAT_CACHE: ${{ runner.temp }}/git-hooks-ext-git-compat
           VERSION: ${{ matrix.version }}
           REF_FORMAT: ${{ matrix.ref_format }}
           EXPECTED: ${{ matrix.expected }}
