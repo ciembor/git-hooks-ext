@@ -158,73 +158,72 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
         <section id="compatibility">
           <h2>Compatibility</h2>
           <p>
-            Measured on 2026-09-19. The table covers Git 2.27–2.55, plus
-            Apple Git 2.39.3. Columns use the files ref backend unless marked
-            <code>reftable</code>. Git 2.27 does not invoke
-            <code>reference-transaction</code> for these operations; the tested
-            Git 2.27–2.35 releases lack the worktree listing format required
-            by the extension's worktree frontend.
+            Measured on 2026-09-19. The detailed CI matrix covers Git 2.27–2.55,
+            Apple Git 2.39.3, and the files and reftable backends. Git versions
+            &lt; 2.28 do not provide the required
+            <code>reference-transaction</code> hook.
           </p>
           <h3>Commands and emitted events</h3>
           <p>
-            This table checks the named command and expected hook with exact
-            arguments. ✅ means that hook fired; ❌ means it did not, even if
-            Git succeeded. Direct <code>update-ref</code> commands show where
-            an event remains reachable when a higher-level command omits usable
-            transaction data. The worktree rows use the extension's frontend.
+            This table lists each tested command, its expected event and the
+            Git versions that emit it. Direct <code>update-ref</code> commands
+            show where an event remains reachable when a higher-level command
+            omits usable transaction data. The worktree rows use the
+            extension's frontend.
           </p>
           <div class="table-wrap">
-            <table class="compatibility-table" aria-label="Event delivery from Git commands by version">
-              <thead><tr><th scope="col">Command → hook</th><th scope="col">2.27</th><th scope="col">2.28</th><th scope="col">2.29</th><th scope="col">2.30</th><th scope="col">2.31</th><th scope="col">2.35</th><th scope="col">2.39.3</th><th scope="col">2.39.3 Apple</th><th scope="col">2.42</th><th scope="col">2.55</th><th scope="col">2.55 reftable</th></tr></thead>
+            <table class="compatibility-table" aria-label="Supported Git versions for semantic events">
+              <thead>
+                <tr><th scope="col">Hook</th><th scope="col">Command</th><th scope="col">Supported Git versions</th></tr>
+              </thead>
               <tbody>
-                <tr><th scope="row"><code>git branch topic</code> → <code>branch-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git commit</code> → <code>branch-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git branch -D topic</code> → <code>branch-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>git update-ref -d refs/heads/topic</code> → <code>branch-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git branch -m old new</code> → <code>branch-renamed</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>git update-ref --stdin</code> (heads) → <code>branch-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git fetch origin</code> → <code>remote-branch-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git fetch origin</code> → <code>remote-branch-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git remote prune origin</code> → <code>remote-branch-deleted</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>git update-ref -d refs/remotes/origin/topic</code> → <code>remote-branch-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git remote rename origin upstream</code> → <code>remote-branch-renamed</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git update-ref --stdin</code> (remotes) → <code>remote-branch-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git tag v1</code> → <code>tag-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git tag -f v1</code> → <code>tag-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git tag -d v1</code> → <code>tag-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>git update-ref -d refs/tags/topic</code> → <code>tag-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git update-ref --stdin</code> (tags) → <code>tag-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row">first <code>git stash push</code> → <code>stash-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row">second <code>git stash push</code> → <code>stash-updated</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>git update-ref refs/stash</code> → <code>stash-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git stash clear</code> → <code>stash-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git notes add</code> → <code>note-created</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git notes append</code> → <code>note-updated</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>git notes remove</code> → <code>note-updated</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>git update-ref refs/notes/topic</code> → <code>note-updated</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git update-ref -d refs/notes/topic</code> → <code>note-deleted</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git update-ref --stdin</code> (notes) → <code>note-renamed</code></th><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git-hooks-ext worktree add</code> → <code>worktree-created</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git-hooks-ext worktree remove</code> → <code>worktree-removed</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git-hooks-ext worktree move</code> → <code>worktree-moved</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git-hooks-ext worktree lock</code> → <code>worktree-locked</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git-hooks-ext worktree unlock</code> → <code>worktree-unlocked</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git-hooks-ext worktree prune</code> → <code>worktree-pruned</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
-                <tr><th scope="row"><code>git-hooks-ext worktree repair</code> → <code>worktree-repaired</code></th><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-no">❌</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td><td class="status-ok">✅</td></tr>
+                <tr><th scope="row"><code>branch-created</code></th><td><code>git branch topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>branch-updated</code></th><td><code>git commit</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git branch -D topic</code></td><td><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
+                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git update-ref -d refs/heads/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>branch-renamed</code></th><td><code>git branch -m old new</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code></td></tr>
+                <tr><th scope="row"><code>branch-renamed</code></th><td><code>git update-ref --stdin</code> (heads)</td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-created</code></th><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-updated</code></th><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git remote prune origin</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git update-ref -d refs/remotes/origin/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git remote rename origin upstream</code></td><td>Git <code>≥ 2.55</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git update-ref --stdin</code> (remotes)</td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>tag-created</code></th><td><code>git tag v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>tag-updated</code></th><td><code>git tag -f v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git tag -d v1</code></td><td><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
+                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git update-ref -d refs/tags/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>tag-renamed</code></th><td><code>git update-ref --stdin</code> (tags)</td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>stash-created</code></th><td>first <code>git stash push</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>stash-updated</code></th><td>second <code>git stash push</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code>; emits <code>stash-created</code></td></tr>
+                <tr><th scope="row"><code>stash-updated</code></th><td><code>git update-ref refs/stash</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>stash-deleted</code></th><td><code>git stash clear</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>note-created</code></th><td><code>git notes add</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes append</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code>; emits <code>note-created</code></td></tr>
+                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes remove</code></td><td>Not observed for <code>2.28 ≤ Git ≤ 2.55</code>; emits <code>note-created</code></td></tr>
+                <tr><th scope="row"><code>note-updated</code></th><td><code>git update-ref refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>note-deleted</code></th><td><code>git update-ref -d refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>note-renamed</code></th><td><code>git update-ref --stdin</code> (notes)</td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>worktree-created</code></th><td><code>git-hooks-ext worktree add</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-removed</code></th><td><code>git-hooks-ext worktree remove</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-moved</code></th><td><code>git-hooks-ext worktree move</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-locked</code></th><td><code>git-hooks-ext worktree lock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-unlocked</code></th><td><code>git-hooks-ext worktree unlock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-pruned</code></th><td><code>git-hooks-ext worktree prune</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-repaired</code></th><td><code>git-hooks-ext worktree repair</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
               </tbody>
             </table>
           </div>
           <p>
             <code>git remote prune</code> removes the tracking ref without a
-            semantic deletion. In these versions, <code>git notes append</code>,
-            <code>git notes remove</code>, and a second <code>git stash push</code>
-            emit a <em>created</em> event instead of the expected <em>updated</em>
-            event.
+            semantic deletion. In the tested versions,
+            <code>git notes append</code>, <code>git notes remove</code>, and a
+            second <code>git stash push</code> emit a <em>created</em> event
+            instead of the expected <em>updated</em> event.
           </p>
           <p class="method-note">
             See the <a href="https://github.com/ciembor/git-hooks-ext/blob/main/tests/compat/README.md">compatibility notes</a>
-            for the test method and raw transaction results. Apple Git 2.39.3
-            was measured locally; the other columns run in the CI matrix.
+            for the exact tested versions, method, and raw transaction results.
           </p>
         </section>
 

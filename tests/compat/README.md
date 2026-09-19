@@ -41,56 +41,52 @@ frontend because they lack `git worktree list --porcelain -z`. The Apple Git
 
 ## Commands and emitted events
 
-Measured on 2026-09-19. The columns use the files ref backend unless marked
-`reftable`.
+Measured on 2026-09-19. The detailed CI matrix tests Git 2.27–2.55, Apple Git
+2.39.3 and the files and reftable backends. Git versions `< 2.28` do not
+provide the required `reference-transaction` hook.
 
-This matrix tests the named command and expected hook with exact arguments. ✅
-means that hook fired; ❌ means it did not, even if the Git command succeeded.
-The direct `update-ref` rows show which events remain reachable when a
-higher-level command omits usable transaction data. `git-hooks-ext worktree`
-rows use the extension's frontend; plain `git worktree` does not run these
-hooks. A `git branch -m` or `git remote rename` may emit a separate deletion
-without producing the requested rename. `git notes append`, `git notes
-remove`, and a second `git stash push` emit *created* instead of the expected
-*updated* event in tested versions. `git remote prune` removes the ref but
-emits no semantic deletion.
+This table lists each tested command, its expected event and the Git versions
+that emit it. The direct `update-ref` rows show which events remain reachable
+when a higher-level command omits usable transaction data. Rows for
+`git-hooks-ext worktree` use the extension's frontend; plain `git worktree`
+does not run these hooks.
 
-| Command → hook | 2.27 | 2.28 | 2.29 | 2.30 | 2.31 | 2.35 | 2.39.3 | 2.39.3 Apple | 2.42 | 2.55 | 2.55 reftable |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| `git branch topic` → `branch-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git commit` → `branch-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git branch -D topic` → `branch-deleted` | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `git update-ref -d refs/heads/topic` → `branch-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git branch -m old new` → `branch-renamed` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `git update-ref --stdin` (heads) → `branch-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git fetch origin` → `remote-branch-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git fetch origin` → `remote-branch-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git remote prune origin` → `remote-branch-deleted` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `git update-ref -d refs/remotes/origin/topic` → `remote-branch-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git remote rename origin upstream` → `remote-branch-renamed` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| `git update-ref --stdin` (remotes) → `remote-branch-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git tag v1` → `tag-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git tag -f v1` → `tag-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git tag -d v1` → `tag-deleted` | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `git update-ref -d refs/tags/topic` → `tag-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git update-ref --stdin` (tags) → `tag-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| first `git stash push` → `stash-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| second `git stash push` → `stash-updated` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `git update-ref refs/stash` → `stash-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git stash clear` → `stash-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git notes add` → `note-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git notes append` → `note-updated` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `git notes remove` → `note-updated` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `git update-ref refs/notes/topic` → `note-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git update-ref -d refs/notes/topic` → `note-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git update-ref --stdin` (notes) → `note-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git-hooks-ext worktree add` → `worktree-created` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git-hooks-ext worktree remove` → `worktree-removed` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git-hooks-ext worktree move` → `worktree-moved` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git-hooks-ext worktree lock` → `worktree-locked` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git-hooks-ext worktree unlock` → `worktree-unlocked` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git-hooks-ext worktree prune` → `worktree-pruned` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `git-hooks-ext worktree repair` → `worktree-repaired` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Hook | Command | Supported Git versions |
+|:---|:---|:---:|
+| `branch-created` | `git branch topic` | Git `≥ 2.28` |
+| `branch-updated` | `git commit` | Git `≥ 2.28` |
+| `branch-deleted` | `git branch -D topic` | `2.28 ≤ Git ≤ 2.30` |
+| `branch-deleted` | `git update-ref -d refs/heads/topic` | Git `≥ 2.28` |
+| `branch-renamed` | `git branch -m old new` | Not observed for `2.28 ≤ Git ≤ 2.55` |
+| `branch-renamed` | `git update-ref --stdin` (heads) | Git `≥ 2.28` |
+| `remote-branch-created` | `git fetch origin` | Git `≥ 2.28` |
+| `remote-branch-updated` | `git fetch origin` | Git `≥ 2.28` |
+| `remote-branch-deleted` | `git remote prune origin` | Not observed for `2.28 ≤ Git ≤ 2.55` |
+| `remote-branch-deleted` | `git update-ref -d refs/remotes/origin/topic` | Git `≥ 2.28` |
+| `remote-branch-renamed` | `git remote rename origin upstream` | Git `≥ 2.55` |
+| `remote-branch-renamed` | `git update-ref --stdin` (remotes) | Git `≥ 2.28` |
+| `tag-created` | `git tag v1` | Git `≥ 2.28` |
+| `tag-updated` | `git tag -f v1` | Git `≥ 2.28` |
+| `tag-deleted` | `git tag -d v1` | `2.28 ≤ Git ≤ 2.30` |
+| `tag-deleted` | `git update-ref -d refs/tags/topic` | Git `≥ 2.28` |
+| `tag-renamed` | `git update-ref --stdin` (tags) | Git `≥ 2.28` |
+| `stash-created` | first `git stash push` | Git `≥ 2.28` |
+| `stash-updated` | second `git stash push` | Not observed for `2.28 ≤ Git ≤ 2.55`; emits `stash-created` |
+| `stash-updated` | `git update-ref refs/stash` | Git `≥ 2.28` |
+| `stash-deleted` | `git stash clear` | Git `≥ 2.28` |
+| `note-created` | `git notes add` | Git `≥ 2.28` |
+| `note-updated` | `git notes append` | Not observed for `2.28 ≤ Git ≤ 2.55`; emits `note-created` |
+| `note-updated` | `git notes remove` | Not observed for `2.28 ≤ Git ≤ 2.55`; emits `note-created` |
+| `note-updated` | `git update-ref refs/notes/topic` | Git `≥ 2.28` |
+| `note-deleted` | `git update-ref -d refs/notes/topic` | Git `≥ 2.28` |
+| `note-renamed` | `git update-ref --stdin` (notes) | Git `≥ 2.28` |
+| `worktree-created` | `git-hooks-ext worktree add` | Git `≥ 2.39.3` |
+| `worktree-removed` | `git-hooks-ext worktree remove` | Git `≥ 2.39.3` |
+| `worktree-moved` | `git-hooks-ext worktree move` | Git `≥ 2.39.3` |
+| `worktree-locked` | `git-hooks-ext worktree lock` | Git `≥ 2.39.3` |
+| `worktree-unlocked` | `git-hooks-ext worktree unlock` | Git `≥ 2.39.3` |
+| `worktree-pruned` | `git-hooks-ext worktree prune` | Git `≥ 2.39.3` |
+| `worktree-repaired` | `git-hooks-ext worktree repair` | Git `≥ 2.39.3` |
 
 The versions were selected by divide and conquer. Testing 2.27 and 2.55 found
 the supported range; 2.28 established the introduction boundary. Tests at
