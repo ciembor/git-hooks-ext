@@ -159,6 +159,15 @@ test_ref_other_is_ignored() {
 	test ! -s "$TEST_DIR/out"
 }
 
+test_unchanged_ref_is_ignored() {
+	printf '%s %s refs/heads/main\n' "$one" "$one" |
+		"$bin" reference-transaction committed --dry-run >"$TEST_DIR/out"
+	test ! -s "$TEST_DIR/out"
+	printf '%s %s refs/heads/main\n' "$zero" "$zero" |
+		"$bin" reference-transaction committed --dry-run >"$TEST_DIR/out"
+	test ! -s "$TEST_DIR/out"
+}
+
 test_large_transaction_grows_update_array() {
 	input=
 	i=0
@@ -235,6 +244,7 @@ register_ref_events_tests() {
 	test_expect_success "emits stash-created" test_stash_created
 	test_expect_success "emits note-updated" test_note_updated
 	test_expect_success "ignores unsupported refs" test_ref_other_is_ignored
+	test_expect_success "ignores unchanged refs" test_unchanged_ref_is_ignored
 	test_expect_success "grows update array" test_large_transaction_grows_update_array
 	test_expect_success "rejects invalid reference input" test_invalid_reference_transaction_input_fails
 	test_expect_success "rejects malformed spacing" test_malformed_spacing_is_rejected

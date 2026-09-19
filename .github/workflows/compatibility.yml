@@ -4,11 +4,19 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - "src/**"
+      - "tests/integration/**"
+      - "tests/run.sh"
       - "tests/compat/**"
+      - "Makefile"
       - ".github/workflows/compatibility.yml"
   pull_request:
     paths:
+      - "src/**"
+      - "tests/integration/**"
+      - "tests/run.sh"
       - "tests/compat/**"
+      - "Makefile"
       - ".github/workflows/compatibility.yml"
 
 permissions:
@@ -19,6 +27,8 @@ jobs:
     name: Git ${{ matrix.version }} / ${{ matrix.ref_format }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      GHE_COMPAT_CACHE: ${{ runner.temp }}/git-hooks-ext-git-compat
     strategy:
       fail-fast: false
       matrix:
@@ -29,10 +39,16 @@ jobs:
           - version: 2.28.0
             ref_format: files
             expected: yes,yes,no,yes,yes,yes
+          - version: 2.29.0
+            ref_format: files
+            expected: yes,yes,no,yes,yes,yes
           - version: 2.30.0
             ref_format: files
             expected: yes,yes,no,yes,yes,yes
           - version: 2.31.0
+            ref_format: files
+            expected: yes,no,no,yes,no,yes
+          - version: 2.35.0
             ref_format: files
             expected: yes,no,no,yes,no,yes
           - version: 2.39.3
@@ -58,7 +74,17 @@ jobs:
           tests/compat/build-git.sh "$VERSION" "$REF_FORMAT" | tee result.tsv
           actual=$(awk 'NR > 1 { print $5 }' result.tsv | paste -sd, -)
           test "$actual" = "$EXPECTED"
+      - name: Build helper and run real Git end-to-end events
+        env:
+          VERSION: ${{ matrix.version }}
+          REF_FORMAT: ${{ matrix.ref_format }}
+          EXPECTED: ${{ matrix.expected }}
+        run: |
+          make
+          tests/compat/e2e.sh "$GHE_COMPAT_CACHE/git-$VERSION/git" "$PWD/git-hooks-ext" "$REF_FORMAT" "$EXPECTED" | tee e2e.tsv
       - uses: actions/upload-artifact@v4
         with:
           name: git-${{ matrix.version }}-${{ matrix.ref_format }}
-          path: result.tsv
+          path: |
+            result.tsv
+            e2e.tsv

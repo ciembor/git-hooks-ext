@@ -8,7 +8,7 @@
 
 [About](#about) · [Quick Start](#quick-start) · [Install](#install) ·
 [Worktrees](#worktree-lifecycle) · [Configuration](#advanced-configuration) ·
-[Hook Arguments](#hook-arguments) ·
+[Hook Arguments](#hook-arguments) · [Compatibility](#compatibility) ·
 [Development](DEVELOPMENT.md) · [Website ↗](https://ciembor.github.io/git-hooks-ext/)
 
 ## About
@@ -40,7 +40,8 @@ Supported events are:
 | `worktree-repaired` |
 
 Event names are identical in Git config, classic hook filenames and dry-run
-output.
+output. The [hook-by-Git-version matrix](#compatibility)
+shows which events were observed end to end.
 
 ## Quick Start
 
@@ -224,8 +225,82 @@ hook is available from Git 2.28, but the tested versions do not report both
 sides of `git branch -m`. From Git 2.31 through 2.55, ordinary `git branch -D`
 and `git tag -d` report `zero -> zero`, so they cannot produce semantic delete
 events through this bridge. Creation and explicit `git update-ref -d` remain
-usable. See the [Git compatibility matrix](tests/compat/README.md) for tested
+usable. See the [Git compatibility matrix](#compatibility) for tested
 versions, ref backends and the reproducible probe.
+
+Other ref commands can provide incomplete information too. In tested Git 2.55,
+`git notes append` and a second `git stash push` report a zero old value even
+though those refs already exist; the bridge can therefore emit another
+`note-created` or `stash-created` instead of an update. End-to-end tests cover
+real Git commands that produce usable payloads; the complete event list also
+describes the transactions the parser can handle when Git supplies them.
+
+## Compatibility
+
+### Hooks by Git version
+
+Measured on 2026-09-19. ✅ means the end-to-end test observed the exact hook
+name and arguments after a real Git operation; ❌ means no usable event was
+produced. For ref hooks, the test uses real `git update-ref` transactions
+(including atomic renames), because Git's higher-level commands do not always
+supply usable old and new object IDs. A green check therefore does **not** mean
+every Git command that changes that ref emits the event. Worktree hooks are
+tested through `git-hooks-ext worktree`. Each column uses the files ref backend
+unless marked `reftable`.
+
+| Hook | 2.27 | 2.28 | 2.29 | 2.30 | 2.31 | 2.35 | 2.39.3 | 2.39.3 Apple | 2.42 | 2.55 | 2.55 reftable |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `branch-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `branch-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `branch-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `branch-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `remote-branch-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `remote-branch-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `remote-branch-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `remote-branch-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `tag-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `tag-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `tag-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `tag-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `stash-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `stash-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `stash-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `note-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `note-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `note-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `note-renamed` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `worktree-created` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `worktree-removed` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `worktree-moved` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `worktree-locked` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `worktree-unlocked` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `worktree-pruned` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `worktree-repaired` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+The worktree frontend cannot run on the tested Git 2.27–2.35 releases because
+they reject `git worktree list --porcelain -z`. Git 2.27 does not call
+`reference-transaction`, so none of the ref hooks fire.
+
+### Events from common Git commands
+
+This second matrix tests the named command, not only the ref event's ability to
+handle a complete transaction. ✅ means the named hook fired with correct
+arguments; ❌ means it did not. `git branch -m` may emit a separate
+`branch-deleted` on the files backend, but never a complete `branch-renamed` in
+these versions.
+
+| Command → hook | 2.27 | 2.28 | 2.29 | 2.30 | 2.31 | 2.35 | 2.39.3 | 2.39.3 Apple | 2.42 | 2.55 | 2.55 reftable |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `git branch topic` → `branch-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `git commit` → `branch-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `git branch -D topic` → `branch-deleted` | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `git branch -m old new` → `branch-renamed` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `git tag v1` → `tag-created` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `git tag -f v1` → `tag-updated` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `git tag -d v1` → `tag-deleted` | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `git update-ref -d` → `branch-deleted` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+The [compatibility notes](tests/compat/README.md) explain the test method and Git's raw transaction behavior.
 
 ## Development
 
