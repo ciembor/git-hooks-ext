@@ -50,7 +50,9 @@ Git 2.54+. `tests/integration/ref_events.sh` separately exercises the parser
 with supplied transactions; its synthetic rename cases are not evidence that
 `git branch -m` emits a complete transaction. Git versions where regular
 branch/tag deletions have unusable payloads are checked by the compatibility
-matrix instead of being treated as passing event delivery.
+matrix instead of being treated as passing event delivery. The matrix also
+checks real `fetch`, `remote prune`, `remote rename`, `notes` and `stash`
+commands, including cases where Git emits a misleading event or none at all.
 
 `tests/compat/reference-transaction.sh` probes whether an installed Git emits
 usable payloads for real branch and tag commands. To reproduce a historical

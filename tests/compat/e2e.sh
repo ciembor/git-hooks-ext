@@ -42,6 +42,7 @@ export GIT_CONFIG_GLOBAL GIT_CONFIG_NOSYSTEM
 unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE
 
 version=$($git_bin version | sed 's/^git version //')
+git_minor=$(printf '%s\n' "$version" | sed -n 's/^[0-9]*\.\([0-9]*\).*/\1/p')
 root=$(mktemp -d "${TMPDIR:-/tmp}/git-hooks-ext-e2e.XXXXXX")
 root=$(CDPATH= cd "$root" && pwd -P)
 trap 'rm -rf "$root"' EXIT
@@ -63,6 +64,12 @@ check_events() {
 		exit 1
 	fi
 	printf '%s\t%s\t%s\tok\n' "$version" "$ref_format" "$name"
+}
+
+use_event_log() {
+	GHE_E2E_LOG="$root/$1.events"
+	export GHE_E2E_LOG
+	: >"$GHE_E2E_LOG"
 }
 
 prepare_repo() {
@@ -191,6 +198,131 @@ else
 	want=
 fi
 check_events update-ref-delete "$want"
+
+# Exercise higher-level commands beyond branch and tag operations. Several of
+# them invoke the hook but report incomplete old/new IDs; assert those results
+# as well, so the command matrix cannot silently claim the intended event.
+prepare_repo command-remote-create
+remote="$root/remote.git"
+"$git_bin" init -q --bare "$remote"
+"$git_bin" -C "$repo" remote add origin "$remote"
+"$git_bin" -C "$repo" push -q origin HEAD:main
+"$git_bin" -C "$repo" update-ref -d refs/remotes/origin/main
+use_event_log command-remote-create
+"$git_bin" -C "$repo" fetch -q origin
+test "$("$git_bin" -C "$repo" rev-parse refs/remotes/origin/main)" = "$oid"
+if test "$branch_create" = yes; then
+	want="remote-branch-created|origin/main|refs/remotes/origin/main|$zero|$oid"
+else
+	want=
+fi
+check_events command-remote-create "$want"
+
+seed="$root/seed"
+"$git_bin" clone -q --no-checkout "$remote" "$seed"
+"$git_bin" -C "$seed" config user.name Compatibility
+"$git_bin" -C "$seed" config user.email compatibility@example.com
+"$git_bin" -C "$seed" checkout -q main
+"$git_bin" -C "$seed" commit --allow-empty -qm next
+"$git_bin" -C "$seed" push -q origin HEAD:main
+new_oid=$("$git_bin" -C "$seed" rev-parse HEAD)
+use_event_log command-remote-update
+"$git_bin" -C "$repo" fetch -q origin
+test "$("$git_bin" -C "$repo" rev-parse refs/remotes/origin/main)" = "$new_oid"
+if test "$branch_create" = yes; then
+	want="remote-branch-updated|origin/main|refs/remotes/origin/main|$oid|$new_oid"
+else
+	want=
+fi
+check_events command-remote-update "$want"
+
+"$git_bin" -C "$seed" push -q origin :main
+use_event_log command-remote-prune
+"$git_bin" -C "$repo" remote prune origin >/dev/null
+! "$git_bin" -C "$repo" show-ref --verify --quiet refs/remotes/origin/main
+check_events command-remote-prune ''
+
+prepare_repo command-remote-rename
+remote="$root/rename.git"
+"$git_bin" init -q --bare "$remote"
+"$git_bin" -C "$repo" remote add origin "$remote"
+"$git_bin" -C "$repo" push -q origin HEAD:main
+use_event_log command-remote-rename
+"$git_bin" -C "$repo" remote rename origin upstream
+test "$("$git_bin" -C "$repo" rev-parse refs/remotes/upstream/main)" = "$oid"
+if test "$branch_create" != yes; then
+	want=
+elif test "$git_minor" -ge 55; then
+	want="remote-branch-renamed|origin/main|upstream/main|refs/remotes/origin/main|refs/remotes/upstream/main|$oid"
+else
+	want="remote-branch-deleted|origin/main|refs/remotes/origin/main|$oid|$zero"
+fi
+check_events command-remote-rename "$want"
+
+prepare_repo command-note-create
+"$git_bin" -C "$repo" notes add -m first HEAD
+note_oid=$("$git_bin" -C "$repo" rev-parse refs/notes/commits)
+if test "$branch_create" = yes; then
+	want="note-created|commits|refs/notes/commits|$zero|$note_oid"
+else
+	want=
+fi
+check_events command-note-create "$want"
+
+use_event_log command-note-append
+"$git_bin" -C "$repo" notes append -m second HEAD
+note_oid=$("$git_bin" -C "$repo" rev-parse refs/notes/commits)
+if test "$branch_create" = yes; then
+	want="note-created|commits|refs/notes/commits|$zero|$note_oid"
+else
+	want=
+fi
+check_events command-note-append "$want"
+
+use_event_log command-note-remove
+"$git_bin" -C "$repo" notes remove HEAD >/dev/null
+note_oid=$("$git_bin" -C "$repo" rev-parse refs/notes/commits)
+if test "$branch_create" = yes; then
+	want="note-created|commits|refs/notes/commits|$zero|$note_oid"
+else
+	want=
+fi
+check_events command-note-remove "$want"
+
+prepare_repo command-stash-create
+printf 'tracked\n' >"$repo/tracked"
+"$git_bin" -C "$repo" add tracked
+"$git_bin" -C "$repo" commit -qm tracked
+printf 'first\n' >>"$repo/tracked"
+use_event_log command-stash-create
+"$git_bin" -C "$repo" stash push -qm first
+stash_oid=$("$git_bin" -C "$repo" rev-parse refs/stash)
+if test "$branch_create" = yes; then
+	want="stash-created|stash|refs/stash|$zero|$stash_oid"
+else
+	want=
+fi
+check_events command-stash-create "$want"
+
+printf 'second\n' >>"$repo/tracked"
+use_event_log command-stash-update
+"$git_bin" -C "$repo" stash push -qm second
+stash_oid=$("$git_bin" -C "$repo" rev-parse refs/stash)
+if test "$branch_create" = yes; then
+	want="stash-created|stash|refs/stash|$zero|$stash_oid"
+else
+	want=
+fi
+check_events command-stash-update "$want"
+
+use_event_log command-stash-clear
+"$git_bin" -C "$repo" stash clear
+if test "$branch_create" = yes; then
+	want="stash-deleted|stash|refs/stash|$stash_oid|$zero"
+else
+	want=
+fi
+check_events command-stash-clear "$want"
 
 # Exercise every ref event using real transactions, including event kinds for
 # which high-level Git commands do not supply sufficient old/new object IDs.
