@@ -263,9 +263,9 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
               <tbody>
                 <tr><th scope="row"><code>branch-created</code></th><td><code>git branch topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>branch-updated</code></th><td><code>git commit</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git branch -D topic</code></td><td class="status-partial"><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
+                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git branch -D topic</code></td><td class="status-partial"><code>2.28 ≤ Git ≤ 2.30</code> <a href="https://lore.kernel.org/git/CACQ=SRHthWOLVXmY6wgknOPgpQ+oB1vV-Q0AL=mK9mXb2Xy9Nw@mail.gmail.com/T/#t">²</a></td></tr>
                 <tr><th scope="row"><code>branch-deleted</code></th><td><code>git update-ref -d refs/heads/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>branch-renamed</code></th><td><code>git branch -m old new</code></td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>branch-renamed</code></th><td><code>git branch -m old new</code></td><td class="status-no">❌ <a href="https://lore.kernel.org/git/CAOLa=ZTN1TU2A1sgEhiw=ymMYr6Ge11cMEubSaeKqr4WNU=2EQ@mail.gmail.com/T/#t">¹</a></td></tr>
                 <tr><th scope="row"><code>branch-renamed</code></th><td><code>git update-ref --stdin</code> (heads)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-created</code></th><td><code>git fetch origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-updated</code></th><td><code>git fetch origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
@@ -275,7 +275,7 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
                 <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git update-ref --stdin</code> (remotes)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>tag-created</code></th><td><code>git tag v1</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>tag-updated</code></th><td><code>git tag -f v1</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git tag -d v1</code></td><td class="status-partial"><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
+                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git tag -d v1</code></td><td class="status-partial"><code>2.28 ≤ Git ≤ 2.30</code> <a href="https://lore.kernel.org/git/CACQ=SRHthWOLVXmY6wgknOPgpQ+oB1vV-Q0AL=mK9mXb2Xy9Nw@mail.gmail.com/T/#t">²</a></td></tr>
                 <tr><th scope="row"><code>tag-deleted</code></th><td><code>git update-ref -d refs/tags/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>tag-renamed</code></th><td><code>git update-ref --stdin</code> (tags)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>stash-created</code></th><td>first <code>git stash push</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
@@ -322,6 +322,11 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
               </tbody>
             </table>
           </div>
+          <h3>Git bugs</h3>
+          <ol>
+            <li><a href="https://lore.kernel.org/git/CAOLa=ZTN1TU2A1sgEhiw=ymMYr6Ge11cMEubSaeKqr4WNU=2EQ@mail.gmail.com/T/#t">¹ <code>git branch -m</code> omits the destination ref from the <code>reference-transaction</code> hook</a>.</li>
+            <li><a href="https://lore.kernel.org/git/CACQ=SRHthWOLVXmY6wgknOPgpQ+oB1vV-Q0AL=mK9mXb2Xy9Nw@mail.gmail.com/T/#t">² <code>git branch -D</code> and <code>git tag -d</code> report zero OIDs from Git 2.31 onward</a>.</li>
+          </ol>
           <p>
             <code>git remote prune</code> removes the tracking ref without a
             semantic deletion. In the tested versions,
