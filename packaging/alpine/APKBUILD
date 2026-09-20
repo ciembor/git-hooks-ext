@@ -1,5 +1,5 @@
 pkgname=git-hooks-ext
-pkgver=0.2.0
+pkgver=0.3.0
 pkgrel=0
 pkgdesc="Semantic Git hooks for reference changes"
 url="https://github.com/ciembor/git-hooks-ext"
@@ -25,5 +25,5 @@ package() {
 }
 
 sha512sums="
-c6cc68b451b0957c673feaf5a62fca52c48c437c520da2cdea8bc308c036d2b62ddd95ea5cce4898644c15fc6b07fb3f7370d5f4cbd2ce2c104da17e141b0bb4  git-hooks-ext-0.2.0.tar.gz
+634d5d26c2b99a292238d10512440c4ae7efdd28173f07b746636f8711169419f55def47f55fcf7f376c384670bf6a6fff9205476e922620c7b32cc311a188c5  git-hooks-ext-0.3.0.tar.gz
 "

@@ -6,7 +6,7 @@ on:
       release_tag:
         description: Release tag to build
         required: true
-        default: v0.2.0
+        default: v0.3.0
         type: string
       verify_public_release:
         description: Also install the published package from GitHub Releases
