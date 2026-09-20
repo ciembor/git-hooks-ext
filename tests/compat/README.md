@@ -107,7 +107,7 @@ does not run these hooks.
 | `head-switched` | symbolic/ref-backend transaction | Git `≥ 2.54` |
 | `remote-head-created` | symbolic/ref-backend transaction | Git `≥ 2.54` |
 | `root-ref-*` | symbolic/ref-backend transaction | Git `≥ 2.54` |
-| `head-detached` | `git checkout --detach` | ❌ (Git reports an unknown old value) |
+| `head-detached` | `git checkout --detach` | ❌ |
 | `worktree-created` | `git-hooks-ext worktree add` | Git `≥ 2.39.3` |
 | `worktree-removed` | `git-hooks-ext worktree remove` | Git `≥ 2.39.3` |
 | `worktree-moved` | `git-hooks-ext worktree move` | Git `≥ 2.39.3` |

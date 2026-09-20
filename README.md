@@ -35,26 +35,26 @@ Supported ref events are grouped by purpose:
 
 ### Specialized refs
 
-| Ref | Created | Deleted | Updated | Renamed |
-| --- | --- | --- | --- | --- |
-| Replace | `replace-created` | `replace-deleted` | `replace-updated` | — |
-| Prefetch | `prefetch-created` | `prefetch-deleted` | `prefetch-updated` | — |
-| Bisect ref | `bisect-ref-created` | `bisect-ref-deleted` | `bisect-ref-updated` | — |
-| Rewritten ref | `rewritten-ref-created` | `rewritten-ref-deleted` | `rewritten-ref-updated` | — |
-| Per-worktree ref | `worktree-ref-created` | `worktree-ref-deleted` | `worktree-ref-updated` | — |
+| Ref | Created | Deleted | Updated |
+| --- | --- | --- | --- |
+| Replace | `replace-created` | `replace-deleted` | `replace-updated` |
+| Prefetch | `prefetch-created` | `prefetch-deleted` | `prefetch-updated` |
+| Bisect ref | `bisect-ref-created` | `bisect-ref-deleted` | `bisect-ref-updated` |
+| Rewritten ref | `rewritten-ref-created` | `rewritten-ref-deleted` | `rewritten-ref-updated` |
+| Per-worktree ref | `worktree-ref-created` | `worktree-ref-deleted` | `worktree-ref-updated` |
 
 ### Fallback refs
 
-| Ref | Created | Deleted | Updated | Renamed |
-| --- | --- | --- | --- | --- |
-| Other `refs/*` | `ref-created` | `ref-deleted` | `ref-updated` | — |
-| Root ref | `root-ref-created` | `root-ref-deleted` | `root-ref-updated` | — |
+| Ref | Created | Deleted | Updated |
+| --- | --- | --- | --- |
+| Other `refs/*` | `ref-created` | `ref-deleted` | `ref-updated` |
+| Root ref | `root-ref-created` | `root-ref-deleted` | `root-ref-updated` |
 
 ### Remote HEAD
 
-| Ref | Created | Deleted | Updated | Renamed |
-| --- | --- | --- | --- | --- |
-| Remote HEAD | `remote-head-created` | `remote-head-deleted` | `remote-head-updated` | — |
+| Ref | Created | Deleted | Updated |
+| --- | --- | --- | --- |
+| Remote HEAD | `remote-head-created` | `remote-head-deleted` | `remote-head-updated` |
 
 ### HEAD events
 
@@ -369,7 +369,7 @@ does not run these hooks.
 | `head-switched` | symbolic/ref-backend transaction | Git `≥ 2.54` |
 | `remote-head-created` | symbolic/ref-backend transaction | Git `≥ 2.54` |
 | `root-ref-*` | symbolic/ref-backend transaction | Git `≥ 2.54` |
-| `head-detached` | `git checkout --detach` | ❌ (Git reports an unknown old value) |
+| `head-detached` | `git checkout --detach` | ❌ |
 | `worktree-created` | `git-hooks-ext worktree add` | Git `≥ 2.39.3` |
 | `worktree-removed` | `git-hooks-ext worktree remove` | Git `≥ 2.39.3` |
 | `worktree-moved` | `git-hooks-ext worktree move` | Git `≥ 2.39.3` |
