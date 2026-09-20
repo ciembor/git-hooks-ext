@@ -63,9 +63,25 @@ static int test_free_updates(void)
 
 int main(void)
 {
-	if (strcmp(short_refname("refs/other/value"), "refs/other/value") != 0)
+	if (strcmp(short_refname("refs/other/value"), "other/value") != 0)
+		return 1;
+	if (strcmp(short_refname("main-worktree/"), "main-worktree/") != 0)
 		return 1;
 	if (strcmp(ref_kind_name(REF_OTHER), "ref") != 0)
+		return 1;
+	if (!ref_kind_supports_rename(REF_BRANCH) ||
+	    !ref_kind_supports_rename(REF_REMOTE_BRANCH) ||
+	    !ref_kind_supports_rename(REF_TAG) ||
+	    !ref_kind_supports_rename(REF_NOTE) ||
+	    ref_kind_supports_rename(REF_GENERIC))
+		return 1;
+	if (!ref_value_is_symbolic("ref:refs/heads/main") ||
+	    ref_value_is_symbolic("ref:") || ref_value_is_symbolic("object"))
+		return 1;
+	if (!ref_value_is_zero("0000000000000000000000000000000000000000") ||
+	    !ref_value_is_zero("0000000000000000000000000000000000000000000000000000000000000000") ||
+	    ref_value_is_zero("0000000000000000000000000000000000000001") ||
+	    ref_value_is_zero("0000"))
 		return 1;
 	if (strcmp(ref_update_name((enum update_kind)42), "updated") != 0)
 		return 1;

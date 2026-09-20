@@ -7,9 +7,18 @@
 enum ref_kind {
 	REF_BRANCH,
 	REF_REMOTE_BRANCH,
+	REF_REMOTE_HEAD,
 	REF_TAG,
 	REF_STASH,
 	REF_NOTE,
+	REF_REPLACE,
+	REF_PREFETCH,
+	REF_BISECT,
+	REF_REWRITTEN,
+	REF_WORKTREE,
+	REF_HEAD,
+	REF_ROOT,
+	REF_GENERIC,
 	REF_OTHER
 };
 
@@ -40,5 +49,8 @@ void free_updates(struct updates *updates);
 const char *ref_kind_name(enum ref_kind kind);
 const char *ref_update_name(enum update_kind kind);
 const char *short_refname(const char *refname);
+bool ref_kind_supports_rename(enum ref_kind kind);
+bool ref_value_is_symbolic(const char *value);
+bool ref_value_is_zero(const char *value);
 
 #endif

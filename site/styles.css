@@ -68,6 +68,7 @@ tbody th { font-weight: 650; }
 .compatibility-table th:first-child { position: sticky; left: 0; z-index: 1; background: var(--paper); }
 .compatibility-table thead th:first-child { z-index: 2; background: var(--panel); }
 .compatibility-table .status-ok { background: #e5f3df; }
+.compatibility-table .status-partial { background: #fff0cc; }
 .compatibility-table .status-no { background: #fae5e2; }
 
 .downloads { display: flex; flex-wrap: wrap; gap: 8px 14px; color: var(--muted); font-size: 0.84rem; }

@@ -66,6 +66,26 @@ check_events() {
 	printf '%s\t%s\t%s\tok\n' "$version" "$ref_format" "$name"
 }
 
+check_event_set() {
+	name=$1
+	expected=$2
+	actual="$root/$name.events"
+	if test -n "$expected"; then
+		printf '%s\n' "$expected" | sort >"$root/expected"
+	else
+		: >"$root/expected"
+	fi
+	if test ! -f "$actual"; then
+		: >"$actual"
+	fi
+	sort "$actual" >"$root/actual"
+	if ! diff -u "$root/expected" "$root/actual"; then
+		printf '%s %s %s: event mismatch\n' "$version" "$ref_format" "$name" >&2
+		exit 1
+	fi
+	printf '%s\t%s\t%s\tok\n' "$version" "$ref_format" "$name"
+}
+
 use_event_log() {
 	GHE_E2E_LOG="$root/$1.events"
 	export GHE_E2E_LOG
@@ -107,6 +127,12 @@ SH
 				if test "$family" != stash || test "$action" != renamed; then
 					ln -s record-event ".git/hooks/$family-$action"
 				fi
+			done
+		done
+		for family in remote-head replace prefetch bisect-ref rewritten-ref \
+			worktree-ref ref; do
+			for action in created deleted updated; do
+				ln -s record-event ".git/hooks/$family-$action"
 			done
 		done
 		for event in worktree-created worktree-removed worktree-moved \
@@ -324,6 +350,119 @@ else
 fi
 check_events command-stash-clear "$want"
 
+prepare_repo command-remote-head-create
+remote="$root/remote-head.git"
+"$git_bin" init -q --bare "$remote"
+"$git_bin" -C "$remote" symbolic-ref HEAD refs/heads/main
+"$git_bin" -C "$repo" remote add origin "$remote"
+"$git_bin" -C "$repo" push -q origin HEAD:main
+"$git_bin" -C "$repo" fetch -q origin
+use_event_log command-remote-head-create
+"$git_bin" -C "$repo" remote set-head origin main
+if test "$branch_create" = yes && test "$git_minor" -ge 54; then
+	want="remote-head-created|origin/HEAD|refs/remotes/origin/HEAD|$zero|ref:refs/remotes/origin/main"
+else
+	want=
+fi
+check_events command-remote-head-create "$want"
+
+"$git_bin" -C "$repo" branch topic
+"$git_bin" -C "$repo" push -q origin topic
+"$git_bin" -C "$repo" fetch -q origin
+use_event_log command-remote-head-update
+"$git_bin" -C "$repo" remote set-head origin topic
+if test "$branch_create" = yes && test "$git_minor" -ge 54; then
+	want="remote-head-created|origin/HEAD|refs/remotes/origin/HEAD|$zero|ref:refs/remotes/origin/topic"
+else
+	want=
+fi
+check_events command-remote-head-update "$want"
+
+use_event_log command-remote-head-delete
+"$git_bin" -C "$repo" remote set-head -d origin
+check_events command-remote-head-delete ''
+
+prepare_repo command-replace-create
+base_oid=$oid
+"$git_bin" -C "$repo" commit --allow-empty -qm second
+replacement_oid=$("$git_bin" -C "$repo" rev-parse HEAD)
+"$git_bin" -C "$repo" commit --allow-empty -qm third
+next_replacement_oid=$("$git_bin" -C "$repo" rev-parse HEAD)
+use_event_log command-replace-create
+"$git_bin" -C "$repo" replace "$base_oid" "$replacement_oid"
+if test "$branch_create" = yes; then
+	want="replace-created|$base_oid|refs/replace/$base_oid|$zero|$replacement_oid"
+else
+	want=
+fi
+check_events command-replace-create "$want"
+
+use_event_log command-replace-update
+"$git_bin" -C "$repo" replace -f "$base_oid" "$next_replacement_oid"
+if test "$branch_create" = yes; then
+	want="replace-updated|$base_oid|refs/replace/$base_oid|$replacement_oid|$next_replacement_oid"
+else
+	want=
+fi
+check_events command-replace-update "$want"
+
+use_event_log command-replace-delete
+"$git_bin" -C "$repo" replace -d "$base_oid" >/dev/null
+if test "$branch_create" = yes; then
+	want="replace-deleted|$base_oid|refs/replace/$base_oid|$next_replacement_oid|$zero"
+else
+	want=
+fi
+check_events command-replace-delete "$want"
+
+if test "$git_minor" -ge 32; then
+	prepare_repo command-prefetch-create
+	remote="$root/prefetch.git"
+	"$git_bin" init -q --bare "$remote"
+	"$git_bin" -C "$remote" symbolic-ref HEAD refs/heads/main
+	"$git_bin" -C "$repo" remote add origin "$remote"
+	"$git_bin" -C "$repo" push -q origin HEAD:main
+	use_event_log command-prefetch-create
+	"$git_bin" -C "$repo" fetch -q --prefetch origin
+	if test "$branch_create" = yes; then
+		want="prefetch-created|remotes/origin/main|refs/prefetch/remotes/origin/main|$zero|$oid"
+		if test "$git_minor" -ge 54; then
+			want="$want
+remote-head-created|origin/HEAD|refs/remotes/origin/HEAD|$zero|ref:refs/remotes/origin/main"
+		fi
+	else
+		want=
+	fi
+	check_events command-prefetch-create "$want"
+
+	"$git_bin" -C "$repo" commit --allow-empty -qm next
+	"$git_bin" -C "$repo" push -q origin HEAD:main
+	new_oid=$("$git_bin" -C "$repo" rev-parse HEAD)
+	use_event_log command-prefetch-update
+	"$git_bin" -C "$repo" fetch -q --prefetch origin
+	if test "$branch_create" = yes; then
+		want="prefetch-updated|remotes/origin/main|refs/prefetch/remotes/origin/main|$oid|$new_oid"
+	else
+		want=
+	fi
+	check_events command-prefetch-update "$want"
+fi
+
+prepare_repo command-bisect
+"$git_bin" -C "$repo" commit --allow-empty -qm second
+"$git_bin" -C "$repo" commit --allow-empty -qm third
+bad_oid=$("$git_bin" -C "$repo" rev-parse HEAD)
+use_event_log command-bisect
+"$git_bin" -C "$repo" bisect start "$bad_oid" "$oid" >/dev/null
+if test "$branch_create" = yes; then
+	want=$("$git_bin" -C "$repo" for-each-ref \
+		--format='bisect-ref-created|%(refname:strip=2)|%(refname)|'"$zero"'|%(objectname)' \
+		refs/bisect)
+else
+	want=
+fi
+check_event_set command-bisect "$want"
+
 # Exercise every ref event using real transactions, including event kinds for
 # which high-level Git commands do not supply sufficient old/new object IDs.
 run_ref_event() {
@@ -332,9 +471,16 @@ run_ref_event() {
 	case "$family" in
 	branch) prefix=refs/heads; short=topic; renamed=renamed ;;
 	remote-branch) prefix=refs/remotes/origin; short=topic; renamed=renamed ;;
+	remote-head) prefix=refs/remotes/origin; short=HEAD; renamed= ;;
 	tag) prefix=refs/tags; short=topic; renamed=renamed ;;
 	note) prefix=refs/notes; short=topic; renamed=renamed ;;
 	stash) prefix=refs; short=stash; renamed= ;;
+	replace) prefix=refs/replace; short=topic; renamed= ;;
+	prefetch) prefix=refs/prefetch; short=topic; renamed= ;;
+	bisect-ref) prefix=refs/bisect; short=topic; renamed= ;;
+	rewritten-ref) prefix=refs/rewritten; short=topic; renamed= ;;
+	worktree-ref) prefix=refs/worktree; short=topic; renamed= ;;
+	ref) prefix=refs/custom; short=topic; renamed= ;;
 	esac
 	if test "$family" = stash; then
 		old_ref=refs/stash
@@ -344,7 +490,7 @@ run_ref_event() {
 	else
 		old_ref="$prefix/$short"
 		new_ref="$prefix/$renamed"
-		if test "$family" = remote-branch; then
+		if test "$family" = remote-branch || test "$family" = remote-head; then
 			old_short="origin/$short"
 			new_short="origin/$renamed"
 		else
@@ -355,6 +501,12 @@ run_ref_event() {
 	name="ref-$family-$action"
 	prepare_repo "$name"
 	base_oid=$oid
+	if test "$family" = replace; then
+		old_ref="refs/replace/$base_oid"
+		old_short=$base_oid
+	elif test "$family" = ref; then
+		old_short="custom/$short"
+	fi
 	if test "$action" = update; then
 		"$git_bin" -C "$repo" commit --allow-empty -qm next
 		new_oid=$("$git_bin" -C "$repo" rev-parse HEAD)
@@ -397,6 +549,98 @@ for family in branch remote-branch tag stash note; do
 		run_ref_event "$family" rename
 	fi
 done
+
+for family in remote-head replace prefetch bisect-ref rewritten-ref \
+	worktree-ref ref; do
+	for action in create update delete; do
+		run_ref_event "$family" "$action"
+	done
+done
+
+if test "$git_minor" -ge 54; then
+	prepare_repo symbolic-head
+	"$git_bin" -C "$repo" branch topic
+	for event in head-updated head-attached head-detached head-switched; do
+		ln -s record-event "$repo/.git/hooks/$event"
+	done
+	use_event_log symbolic-head
+	"$git_bin" -C "$repo" symbolic-ref HEAD refs/heads/topic
+	printf 'option no-deref\nsymref-update HEAD refs/heads/main ref refs/heads/topic\n' |
+		"$git_bin" -C "$repo" update-ref --stdin
+	check_events symbolic-head "head-updated|HEAD|HEAD|$zero|ref:refs/heads/topic
+head-updated|HEAD|HEAD|ref:refs/heads/topic|ref:refs/heads/main
+head-switched|HEAD|HEAD|ref:refs/heads/topic|ref:refs/heads/main"
+
+	use_event_log symbolic-head-detach
+	"$git_bin" -C "$repo" checkout -q --detach
+	check_events symbolic-head-detach "head-updated|HEAD|HEAD|$zero|$oid"
+
+	use_event_log symbolic-head-attach
+	printf 'option no-deref\nsymref-update HEAD refs/heads/topic oid %s\n' "$oid" |
+		"$git_bin" -C "$repo" update-ref --stdin
+	check_events symbolic-head-attach "head-updated|HEAD|HEAD|$oid|ref:refs/heads/topic
+head-attached|HEAD|HEAD|$oid|ref:refs/heads/topic"
+
+	prepare_repo symbolic-remote-head
+	"$git_bin" -C "$repo" update-ref refs/remotes/origin/main "$oid"
+	use_event_log symbolic-remote-head
+	"$git_bin" -C "$repo" symbolic-ref refs/remotes/origin/HEAD \
+		refs/remotes/origin/main
+	check_events symbolic-remote-head "remote-head-created|origin/HEAD|refs/remotes/origin/HEAD|$zero|ref:refs/remotes/origin/main"
+	"$git_bin" -C "$repo" update-ref refs/remotes/origin/topic "$oid"
+	use_event_log symbolic-remote-head-update
+	printf 'option no-deref\nsymref-update refs/remotes/origin/HEAD refs/remotes/origin/topic ref refs/remotes/origin/main\n' |
+		"$git_bin" -C "$repo" update-ref --stdin
+	check_events symbolic-remote-head-update "remote-head-updated|origin/HEAD|refs/remotes/origin/HEAD|ref:refs/remotes/origin/main|ref:refs/remotes/origin/topic"
+
+	use_event_log symbolic-remote-head-delete
+	printf 'option no-deref\nsymref-delete refs/remotes/origin/HEAD refs/remotes/origin/topic\n' |
+		"$git_bin" -C "$repo" update-ref --stdin
+	check_events symbolic-remote-head-delete "remote-head-deleted|origin/HEAD|refs/remotes/origin/HEAD|ref:refs/remotes/origin/topic|$zero"
+
+	prepare_repo root-ref
+	base_oid=$oid
+	"$git_bin" -C "$repo" commit --allow-empty -qm next
+	next_oid=$("$git_bin" -C "$repo" rev-parse HEAD)
+	for event in root-ref-created root-ref-updated root-ref-deleted; do
+		ln -s record-event "$repo/.git/hooks/$event"
+	done
+	use_event_log root-ref
+	"$git_bin" -C "$repo" update-ref AUTO_MERGE "$base_oid"
+	"$git_bin" -C "$repo" update-ref AUTO_MERGE "$next_oid" "$base_oid"
+	"$git_bin" -C "$repo" update-ref -d AUTO_MERGE "$next_oid"
+	check_events root-ref "root-ref-created|AUTO_MERGE|AUTO_MERGE|$zero|$base_oid
+root-ref-updated|AUTO_MERGE|AUTO_MERGE|$base_oid|$next_oid
+root-ref-deleted|AUTO_MERGE|AUTO_MERGE|$next_oid|$zero"
+
+	prepare_repo nonstandard-refs
+	"$git_bin" -C "$repo" worktree add -q --detach "$root/nonstandard-tree"
+	for event in root-ref-created root-ref-updated root-ref-deleted; do
+		ln -s record-event "$repo/.git/hooks/$event"
+	done
+	use_event_log nonstandard-refs
+	"$git_bin" -C "$repo" update-ref CUSTOM "$oid"
+	"$git_bin" -C "$repo" update-ref lower_HEAD "$oid"
+	"$git_bin" -C "$repo" update-ref misc/path "$oid"
+	"$git_bin" -C "$repo" update-ref main-worktree/AUTO_MERGE "$oid"
+	"$git_bin" -C "$repo" update-ref main-worktree/refs/bisect/good "$oid"
+	"$git_bin" -C "$repo" update-ref worktrees/nonstandard-tree/refs/rewritten/topic "$oid"
+	"$git_bin" -C "$repo" update-ref main-worktree/FETCH_HEAD "$oid"
+	"$git_bin" -C "$repo" update-ref main-worktree/MERGE_HEAD "$oid"
+	"$git_bin" -C "$repo" update-ref worktrees/nonstandard-tree/FETCH_HEAD "$oid"
+	"$git_bin" -C "$repo" update-ref worktrees/nonstandard-tree/MERGE_HEAD "$oid"
+	check_events nonstandard-refs "root-ref-created|CUSTOM|CUSTOM|$zero|$oid
+root-ref-created|lower_HEAD|lower_HEAD|$zero|$oid
+root-ref-created|misc/path|misc/path|$zero|$oid
+root-ref-created|AUTO_MERGE|main-worktree/AUTO_MERGE|$zero|$oid
+bisect-ref-created|good|main-worktree/refs/bisect/good|$zero|$oid
+rewritten-ref-created|topic|worktrees/nonstandard-tree/refs/rewritten/topic|$zero|$oid
+root-ref-created|FETCH_HEAD|main-worktree/FETCH_HEAD|$zero|$oid
+root-ref-created|MERGE_HEAD|main-worktree/MERGE_HEAD|$zero|$oid
+root-ref-created|FETCH_HEAD|worktrees/nonstandard-tree/FETCH_HEAD|$zero|$oid
+root-ref-created|MERGE_HEAD|worktrees/nonstandard-tree/MERGE_HEAD|$zero|$oid"
+
+fi
 
 # The worktree frontend needs NUL-delimited porcelain output. Older Git
 # versions reject `git worktree list --porcelain -z` before running a command.

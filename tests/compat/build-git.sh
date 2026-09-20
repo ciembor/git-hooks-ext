@@ -44,7 +44,8 @@ fi
 build_log="$cache/build-$version.log"
 if ! make -C "$source_dir" -j"$jobs" \
 	NO_GETTEXT=YesPlease NO_TCLTK=YesPlease NO_CURL=YesPlease \
-	NO_EXPAT=YesPlease NO_OPENSSL=YesPlease $platform_flags git \
+	NO_EXPAT=YesPlease NO_OPENSSL=YesPlease $platform_flags \
+	git git-bisect git-sh-setup git-sh-i18n \
 	>"$build_log" 2>&1; then
 	cat "$build_log" >&2
 	exit 1

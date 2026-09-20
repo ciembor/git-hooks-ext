@@ -31,10 +31,14 @@ Source archives and builds are cached outside the repository under
 `GHE_COMPAT_JOBS` to override the cache or build parallelism.
 The `Git compatibility` workflow builds each release in the matrix, checks the
 expected `usable_update` column, runs the real end-to-end suite and uploads
-both TSV results. It tests 19 ref events (branch, remote branch, tag, note and
-stash) using actual `git update-ref` transactions, seven worktree events using
-the `git-hooks-ext worktree` frontend, and 18 higher-level Git command
-scenarios. The end-to-end suite also confirms Git 2.27 does not emit ref
+both TSV results. It tests 40 ref events (branch, remote branch, remote HEAD,
+tag, stash, note, replace, prefetch, bisect, rewritten, per-worktree and
+fallback refs) using actual `git update-ref` transactions, seven worktree
+events using the `git-hooks-ext worktree` frontend, and 18 higher-level Git command
+scenarios. On Git 2.54+, it additionally checks symbolic `HEAD`, symbolic remote
+`HEAD`, custom ref names outside `refs/*`, worktree aliases and root-ref
+transactions on both ref backends. The end-to-end suite
+also confirms Git 2.27 does not emit ref
 events and Git versions before 2.39 in this matrix cannot run the worktree
 frontend because they lack `git worktree list --porcelain -z`. The Apple Git
 2.39.3 row is measured locally, separately from the upstream CI matrix.
@@ -80,6 +84,30 @@ does not run these hooks.
 | `note-updated` | `git update-ref refs/notes/topic` | Git `≥ 2.28` |
 | `note-deleted` | `git update-ref -d refs/notes/topic` | Git `≥ 2.28` |
 | `note-renamed` | `git update-ref --stdin` (notes) | Git `≥ 2.28` |
+| `remote-head-created` | `git remote set-head origin main` | Git `≥ 2.54` |
+| `remote-head-created` | `git remote set-head origin topic` after fetch | Git `≥ 2.54` |
+| `remote-head-updated` | `git update-ref --stdin` (`symref-update`) | Git `≥ 2.54` |
+| `remote-head-deleted` | `git remote set-head -d origin` | ❌ |
+| `remote-head-deleted` | `git update-ref --stdin` (`symref-delete`) | Git `≥ 2.54` |
+| `replace-created` | `git replace <old> <new>` | Git `≥ 2.28` |
+| `replace-updated` | `git replace -f <old> <new>` | Git `≥ 2.28` |
+| `replace-deleted` | `git replace -d <old>` | Git `≥ 2.28` |
+| `prefetch-created` | `git fetch --prefetch origin` | Git `≥ 2.32` |
+| `prefetch-updated` | second `git fetch --prefetch origin` | Git `≥ 2.32` |
+| `bisect-ref-created` | `git bisect start <bad> <good>` | Git `≥ 2.28` |
+| `remote-head-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `replace-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `prefetch-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `bisect-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `rewritten-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `worktree-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `ref-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `head-updated` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `head-attached` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `head-switched` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `remote-head-created` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `root-ref-*` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `head-detached` | `git checkout --detach` | ❌ (Git reports an unknown old value) |
 | `worktree-created` | `git-hooks-ext worktree add` | Git `≥ 2.39.3` |
 | `worktree-removed` | `git-hooks-ext worktree remove` | Git `≥ 2.39.3` |
 | `worktree-moved` | `git-hooks-ext worktree move` | Git `≥ 2.39.3` |
@@ -88,11 +116,9 @@ does not run these hooks.
 | `worktree-pruned` | `git-hooks-ext worktree prune` | Git `≥ 2.39.3` |
 | `worktree-repaired` | `git-hooks-ext worktree repair` | Git `≥ 2.39.3` |
 
-The versions were selected by divide and conquer. Testing 2.27 and 2.55 found
-the supported range; 2.28 established the introduction boundary. Tests at
-2.42, 2.35, 2.32, 2.30 and 2.31 narrowed the deletion behavior change to
-2.31.0. Versions 2.29 and 2.39.3 verify both sides and compare upstream Git
-with Apple's build.
+The CI runs every upstream minor release from Git 2.27 through 2.55 with the
+files backend, plus Git 2.55 with reftable. Git 2.39.3 is measured locally as
+the Apple Git comparison build.
 
 With the files backend from Git 2.28 onward, `branch -m` reports the old branch
 deletion but omits the new branch creation. The tested reftable backend emits
