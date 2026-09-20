@@ -64,7 +64,7 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
           <h2>Description</h2>
           <p>
             Git's <code>reference-transaction</code> hook reports old and new
-            object IDs together with a ref name. <code>git-hooks-ext</code>
+            values together with a ref name. <code>git-hooks-ext</code>
             translates that input into events such as
             <code>branch-created</code>, <code>tag-deleted</code>, and
             <code>branch-renamed</code>.
@@ -86,27 +86,111 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
           </div>
           <p>
             Event hooks run after the transaction is committed. They receive
-            the short ref name, full ref name, old object ID, and new object ID.
+            the short ref name, full ref name, old value, and new value.
+            Symbolic values use Git's <code>ref:</code> representation.
           </p>
         </section>
 
         <section id="events">
           <h2>Events</h2>
-          <p>Event names are identical in hook files, Git config, and dry-run output.</p>
-          <div class="table-wrap">
+	          <p>Event names are identical in hook files, Git config, and dry-run output.</p>
+	          <h3>Everyday refs</h3>
+	          <div class="table-wrap">
             <table>
               <thead>
                 <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th><th>Renamed</th></tr>
-              </thead>
-              <tbody>
+	              </thead>
+	              <tbody>
                 <tr><th>Branch</th><td><code>branch-created</code></td><td><code>branch-deleted</code></td><td><code>branch-updated</code></td><td><code>branch-renamed</code></td></tr>
                 <tr><th>Remote branch</th><td><code>remote-branch-created</code></td><td><code>remote-branch-deleted</code></td><td><code>remote-branch-updated</code></td><td><code>remote-branch-renamed</code></td></tr>
                 <tr><th>Tag</th><td><code>tag-created</code></td><td><code>tag-deleted</code></td><td><code>tag-updated</code></td><td><code>tag-renamed</code></td></tr>
-                <tr><th>Stash</th><td><code>stash-created</code></td><td><code>stash-deleted</code></td><td><code>stash-updated</code></td><td>—</td></tr>
-                <tr><th>Note</th><td><code>note-created</code></td><td><code>note-deleted</code></td><td><code>note-updated</code></td><td><code>note-renamed</code></td></tr>
-              </tbody>
-            </table>
-          </div>
+	                <tr><th>Note</th><td><code>note-created</code></td><td><code>note-deleted</code></td><td><code>note-updated</code></td><td><code>note-renamed</code></td></tr>
+	                <tr><th>Stash</th><td><code>stash-created</code></td><td><code>stash-deleted</code></td><td><code>stash-updated</code></td><td>—</td></tr>
+	              </tbody>
+	            </table>
+	          </div>
+	          <h3>Specialized refs</h3>
+	          <div class="table-wrap">
+	            <table>
+	              <thead>
+	                <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th><th>Renamed</th></tr>
+	              </thead>
+	              <tbody>
+	                <tr><th>Replace</th><td><code>replace-created</code></td><td><code>replace-deleted</code></td><td><code>replace-updated</code></td><td>—</td></tr>
+                <tr><th>Prefetch</th><td><code>prefetch-created</code></td><td><code>prefetch-deleted</code></td><td><code>prefetch-updated</code></td><td>—</td></tr>
+                <tr><th>Bisect ref</th><td><code>bisect-ref-created</code></td><td><code>bisect-ref-deleted</code></td><td><code>bisect-ref-updated</code></td><td>—</td></tr>
+                <tr><th>Rewritten ref</th><td><code>rewritten-ref-created</code></td><td><code>rewritten-ref-deleted</code></td><td><code>rewritten-ref-updated</code></td><td>—</td></tr>
+	                <tr><th>Per-worktree ref</th><td><code>worktree-ref-created</code></td><td><code>worktree-ref-deleted</code></td><td><code>worktree-ref-updated</code></td><td>—</td></tr>
+	              </tbody>
+	            </table>
+	          </div>
+	          <h3>Fallback refs</h3>
+	          <div class="table-wrap">
+	            <table>
+	              <thead>
+	                <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th><th>Renamed</th></tr>
+	              </thead>
+	              <tbody>
+	                <tr><th>Other <code>refs/*</code></th><td><code>ref-created</code></td><td><code>ref-deleted</code></td><td><code>ref-updated</code></td><td>—</td></tr>
+	                <tr><th>Root ref</th><td><code>root-ref-created</code></td><td><code>root-ref-deleted</code></td><td><code>root-ref-updated</code></td><td>—</td></tr>
+	              </tbody>
+	            </table>
+	          </div>
+	          <h3>Remote HEAD</h3>
+	          <div class="table-wrap">
+	            <table>
+	              <thead>
+	                <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th><th>Renamed</th></tr>
+	              </thead>
+	              <tbody>
+	                <tr><th>Remote HEAD</th><td><code>remote-head-created</code></td><td><code>remote-head-deleted</code></td><td><code>remote-head-updated</code></td><td>—</td></tr>
+	              </tbody>
+	            </table>
+	          </div>
+	          <h3>HEAD events</h3>
+	          <div class="table-wrap">
+	            <table>
+	              <thead><tr><th>Event</th><th>Emitted when</th></tr></thead>
+	              <tbody>
+	                <tr><th><code>head-updated</code></th><td>Every changed <code>HEAD</code> value</td></tr>
+	                <tr><th><code>head-attached</code></th><td><code>HEAD</code> changes from a known direct OID to a symbolic target</td></tr>
+	                <tr><th><code>head-detached</code></th><td><code>HEAD</code> changes from a symbolic target to a known direct OID</td></tr>
+	                <tr><th><code>head-switched</code></th><td><code>HEAD</code> changes between symbolic targets</td></tr>
+	              </tbody>
+	            </table>
+	          </div>
+	          <p>
+            The <code>worktree-ref-*</code> events describe updates under
+            <code>refs/worktree/*</code>. They are separate from the
+            <code>worktree-*</code> lifecycle events below.
+          </p>
+          <p>
+            <code>remote-head-*</code> treats the first path component after
+            <code>refs/remotes/</code> as the remote name. Names containing
+            <code>/</code> are ambiguous with remote branches ending in
+            <code>/HEAD</code> and are classified as remote branches.
+          </p>
+          <p>
+            Ref names outside <code>refs/*</code> that reach the ref backend,
+            including custom names, emit <code>root-ref-*</code>. Git's
+            <code>main-worktree/</code> and <code>worktrees/&lt;name&gt;/</code>
+            aliases use the class of the underlying per-worktree ref while
+            retaining the full alias-qualified name in hook arguments.
+            Alias-qualified <code>FETCH_HEAD</code> and
+            <code>MERGE_HEAD</code> can reach the ref backend and emit
+            <code>root-ref-*</code>, unlike their direct pseudoref names.
+          </p>
+          <p>
+            Every changed <code>HEAD</code> value emits
+            <code>head-updated</code>. Changes between direct and symbolic
+            values additionally emit <code>head-attached</code> or
+            <code>head-detached</code>; changes between symbolic targets emit
+            <code>head-switched</code>. When Git reports an all-zero old or
+            new value, the previous or next attachment state is unknown, so
+            only <code>head-updated</code> is emitted. Git can report a zero
+            old value even for an explicit
+            <code>git update-ref --no-deref HEAD</code> detach.
+          </p>
           <h3>Worktree lifecycle</h3>
           <div class="table-wrap">
             <table>
@@ -177,40 +261,64 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
                 <tr><th scope="col">Hook</th><th scope="col">Command</th><th scope="col">Supported Git versions</th></tr>
               </thead>
               <tbody>
-                <tr><th scope="row"><code>branch-created</code></th><td><code>git branch topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>branch-updated</code></th><td><code>git commit</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git branch -D topic</code></td><td><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
-                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git update-ref -d refs/heads/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>branch-created</code></th><td><code>git branch topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>branch-updated</code></th><td><code>git commit</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git branch -D topic</code></td><td class="status-partial"><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
+                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git update-ref -d refs/heads/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>branch-renamed</code></th><td><code>git branch -m old new</code></td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>branch-renamed</code></th><td><code>git update-ref --stdin</code> (heads)</td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>remote-branch-created</code></th><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>remote-branch-updated</code></th><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>branch-renamed</code></th><td><code>git update-ref --stdin</code> (heads)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-created</code></th><td><code>git fetch origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-updated</code></th><td><code>git fetch origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git remote prune origin</code></td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git update-ref -d refs/remotes/origin/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git remote rename origin upstream</code></td><td>Git <code>≥ 2.55</code></td></tr>
-                <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git update-ref --stdin</code> (remotes)</td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>tag-created</code></th><td><code>git tag v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>tag-updated</code></th><td><code>git tag -f v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git tag -d v1</code></td><td><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
-                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git update-ref -d refs/tags/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>tag-renamed</code></th><td><code>git update-ref --stdin</code> (tags)</td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>stash-created</code></th><td>first <code>git stash push</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git update-ref -d refs/remotes/origin/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git remote rename origin upstream</code></td><td class="status-partial">Git <code>≥ 2.55</code></td></tr>
+                <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git update-ref --stdin</code> (remotes)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>tag-created</code></th><td><code>git tag v1</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>tag-updated</code></th><td><code>git tag -f v1</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git tag -d v1</code></td><td class="status-partial"><code>2.28 ≤ Git ≤ 2.30</code></td></tr>
+                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git update-ref -d refs/tags/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>tag-renamed</code></th><td><code>git update-ref --stdin</code> (tags)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>stash-created</code></th><td>first <code>git stash push</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>stash-updated</code></th><td>second <code>git stash push</code></td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>stash-updated</code></th><td><code>git update-ref refs/stash</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>stash-deleted</code></th><td><code>git stash clear</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>note-created</code></th><td><code>git notes add</code></td><td>Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>stash-updated</code></th><td><code>git update-ref refs/stash</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>stash-deleted</code></th><td><code>git stash clear</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>note-created</code></th><td><code>git notes add</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>note-updated</code></th><td><code>git notes append</code></td><td class="status-no">❌</td></tr>
                 <tr><th scope="row"><code>note-updated</code></th><td><code>git notes remove</code></td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>note-updated</code></th><td><code>git update-ref refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>note-deleted</code></th><td><code>git update-ref -d refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>note-renamed</code></th><td><code>git update-ref --stdin</code> (notes)</td><td>Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>worktree-created</code></th><td><code>git-hooks-ext worktree add</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-removed</code></th><td><code>git-hooks-ext worktree remove</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-moved</code></th><td><code>git-hooks-ext worktree move</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-locked</code></th><td><code>git-hooks-ext worktree lock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-unlocked</code></th><td><code>git-hooks-ext worktree unlock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-pruned</code></th><td><code>git-hooks-ext worktree prune</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-repaired</code></th><td><code>git-hooks-ext worktree repair</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+	                <tr><th scope="row"><code>note-updated</code></th><td><code>git update-ref refs/notes/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>note-deleted</code></th><td><code>git update-ref -d refs/notes/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>note-renamed</code></th><td><code>git update-ref --stdin</code> (notes)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>remote-head-created</code></th><td><code>git remote set-head origin main</code></td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>remote-head-created</code></th><td><code>git remote set-head origin topic</code> after fetch</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>remote-head-updated</code></th><td><code>git update-ref --stdin</code> (<code>symref-update</code>)</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>remote-head-deleted</code></th><td><code>git remote set-head -d origin</code></td><td class="status-no">❌</td></tr>
+	                <tr><th scope="row"><code>remote-head-deleted</code></th><td><code>git update-ref --stdin</code> (<code>symref-delete</code>)</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>replace-created</code></th><td><code>git replace &lt;old&gt; &lt;new&gt;</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>replace-updated</code></th><td><code>git replace -f &lt;old&gt; &lt;new&gt;</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>replace-deleted</code></th><td><code>git replace -d &lt;old&gt;</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>prefetch-created</code></th><td><code>git fetch --prefetch origin</code></td><td class="status-ok">Git <code>≥ 2.32</code></td></tr>
+	                <tr><th scope="row"><code>prefetch-updated</code></th><td>second <code>git fetch --prefetch origin</code></td><td class="status-ok">Git <code>≥ 2.32</code></td></tr>
+	                <tr><th scope="row"><code>bisect-ref-created</code></th><td><code>git bisect start &lt;bad&gt; &lt;good&gt;</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>remote-head-*</code></th><td>direct <code>git update-ref</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>replace-*</code></th><td>direct <code>git update-ref</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>prefetch-*</code></th><td>direct <code>git update-ref</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>bisect-ref-*</code></th><td>direct <code>git update-ref</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>rewritten-ref-*</code></th><td>direct <code>git update-ref</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>worktree-ref-*</code></th><td>direct <code>git update-ref</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>ref-*</code></th><td>direct <code>git update-ref</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+	                <tr><th scope="row"><code>head-updated</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>head-attached</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>head-switched</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>remote-head-created</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>root-ref-*</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
+	                <tr><th scope="row"><code>head-detached</code></th><td><code>git checkout --detach</code></td><td class="status-no">❌ (Git reports an unknown old value)</td></tr>
+	                <tr><th scope="row"><code>worktree-created</code></th><td><code>git-hooks-ext worktree add</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-removed</code></th><td><code>git-hooks-ext worktree remove</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-moved</code></th><td><code>git-hooks-ext worktree move</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-locked</code></th><td><code>git-hooks-ext worktree lock</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-unlocked</code></th><td><code>git-hooks-ext worktree unlock</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-pruned</code></th><td><code>git-hooks-ext worktree prune</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-repaired</code></th><td><code>git-hooks-ext worktree repair</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
               </tbody>
             </table>
           </div>

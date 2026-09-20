@@ -22,33 +22,117 @@ static char *xstrdup(const char *s)
 	return copy;
 }
 
-static int is_zero_value(const char *value)
+bool ref_value_is_zero(const char *value)
 {
 	size_t len = strlen(value);
 
 	return (len == 40 || len == 64) && strspn(value, "0") == len;
 }
 
+bool ref_value_is_symbolic(const char *value)
+{
+	return strncmp(value, "ref:", 4) == 0 && value[4] != '\0';
+}
+
+static bool is_root_ref_syntax(const char *refname)
+{
+	const char *name;
+
+	if (!*refname)
+		return false;
+	for (name = refname; *name; name++) {
+		char c = *name;
+
+		if ((c < 'A' || c > 'Z') && c != '-' && c != '_')
+			return false;
+	}
+	return true;
+}
+
+static bool is_per_worktree_ref(const char *refname)
+{
+	return strncmp(refname, "refs/worktree/", 14) == 0 ||
+	       strncmp(refname, "refs/bisect/", 12) == 0 ||
+	       strncmp(refname, "refs/rewritten/", 15) == 0;
+}
+
+static bool is_pseudo_ref(const char *refname)
+{
+	return strcmp(refname, "FETCH_HEAD") == 0 ||
+	       strcmp(refname, "MERGE_HEAD") == 0;
+}
+
+static const char *worktree_bare_ref(const char *refname)
+{
+	const char *bare = NULL;
+
+	if (strncmp(refname, "main-worktree/", 14) == 0) {
+		bare = refname + 14;
+	} else if (strncmp(refname, "worktrees/", 10) == 0) {
+		const char *name = refname + 10;
+		const char *slash = strchr(name, '/');
+
+		if (slash && slash != name)
+			bare = slash + 1;
+	}
+	if (bare && (is_root_ref_syntax(bare) || is_per_worktree_ref(bare)))
+		return bare;
+	return refname;
+}
+
 static enum ref_kind classify_ref(const char *refname)
 {
+	const char *bare = worktree_bare_ref(refname);
+
+	if (bare != refname)
+		return is_pseudo_ref(bare) ? REF_ROOT : classify_ref(bare);
+	if (strcmp(refname, "HEAD") == 0)
+		return REF_HEAD;
 	if (strncmp(refname, "refs/heads/", 11) == 0)
 		return REF_BRANCH;
-	if (strncmp(refname, "refs/remotes/", 13) == 0)
+	if (strncmp(refname, "refs/remotes/", 13) == 0) {
+		const char *name = refname + 13;
+		const char *slash = strchr(name, '/');
+
+		if (!slash)
+			return REF_GENERIC;
+		if (strcmp(slash, "/HEAD") == 0)
+			return REF_REMOTE_HEAD;
 		return REF_REMOTE_BRANCH;
+	}
 	if (strncmp(refname, "refs/tags/", 10) == 0)
 		return REF_TAG;
 	if (strcmp(refname, "refs/stash") == 0)
 		return REF_STASH;
 	if (strncmp(refname, "refs/notes/", 11) == 0)
 		return REF_NOTE;
-	return REF_OTHER;
+	if (strncmp(refname, "refs/replace/", 13) == 0)
+		return REF_REPLACE;
+	if (strncmp(refname, "refs/prefetch/", 14) == 0)
+		return REF_PREFETCH;
+	if (strncmp(refname, "refs/bisect/", 12) == 0)
+		return REF_BISECT;
+	if (strncmp(refname, "refs/rewritten/", 15) == 0)
+		return REF_REWRITTEN;
+	if (strncmp(refname, "refs/worktree/", 14) == 0)
+		return REF_WORKTREE;
+	if (strncmp(refname, "refs/", 5) == 0)
+		return REF_GENERIC;
+	if (is_pseudo_ref(refname))
+		return REF_OTHER;
+	return REF_ROOT;
 }
 
 const char *short_refname(const char *refname)
 {
+	const char *bare = worktree_bare_ref(refname);
+
+	if (bare != refname)
+		return short_refname(bare);
 	if (strncmp(refname, "refs/heads/", 11) == 0)
 		return refname + 11;
-	if (strncmp(refname, "refs/remotes/", 13) == 0)
+	if (strncmp(refname, "refs/remotes/", 13) == 0 &&
+	    strchr(refname + 13, '/'))
 		return refname + 13;
 	if (strncmp(refname, "refs/tags/", 10) == 0)
 		return refname + 10;
@@ -56,6 +140,18 @@ const char *short_refname(const char *refname)
 		return "stash";
 	if (strncmp(refname, "refs/notes/", 11) == 0)
 		return refname + 11;
+	if (strncmp(refname, "refs/replace/", 13) == 0)
+		return refname + 13;
+	if (strncmp(refname, "refs/prefetch/", 14) == 0)
+		return refname + 14;
+	if (strncmp(refname, "refs/bisect/", 12) == 0)
+		return refname + 12;
+	if (strncmp(refname, "refs/rewritten/", 15) == 0)
+		return refname + 15;
+	if (strncmp(refname, "refs/worktree/", 14) == 0)
+		return refname + 14;
+	if (strncmp(refname, "refs/", 5) == 0)
+		return refname + 5;
 	return refname;
 }
 
@@ -66,16 +162,40 @@ const char *ref_kind_name(enum ref_kind kind)
 		return "branch";
 	case REF_REMOTE_BRANCH:
 		return "remote-branch";
+	case REF_REMOTE_HEAD:
+		return "remote-head";
 	case REF_TAG:
 		return "tag";
 	case REF_STASH:
 		return "stash";
 	case REF_NOTE:
 		return "note";
+	case REF_REPLACE:
+		return "replace";
+	case REF_PREFETCH:
+		return "prefetch";
+	case REF_BISECT:
+		return "bisect-ref";
+	case REF_REWRITTEN:
+		return "rewritten-ref";
+	case REF_WORKTREE:
+		return "worktree-ref";
+	case REF_HEAD:
+		return "head";
+	case REF_ROOT:
+		return "root-ref";
+	case REF_GENERIC:
+		return "ref";
 	case REF_OTHER:
 		break;
 	}
 	return "ref";
+}
+
+bool ref_kind_supports_rename(enum ref_kind kind)
+{
+	return kind == REF_BRANCH || kind == REF_REMOTE_BRANCH ||
+	       kind == REF_TAG || kind == REF_NOTE;
 }
 
 const char *ref_update_name(enum update_kind kind)
@@ -160,9 +280,9 @@ static int parse_line(char *line, struct ref_update *out)
 	out->ref_kind = classify_ref(refname);
 	out->consumed = false;
 
-	if (is_zero_value(old_value) && !is_zero_value(new_value))
+	if (ref_value_is_zero(old_value) && !ref_value_is_zero(new_value))
 		out->update_kind = UPDATE_CREATE;
-	else if (!is_zero_value(old_value) && is_zero_value(new_value))
+	else if (!ref_value_is_zero(old_value) && ref_value_is_zero(new_value))
 		out->update_kind = UPDATE_DELETE;
 	else
 		out->update_kind = UPDATE_UPDATE;

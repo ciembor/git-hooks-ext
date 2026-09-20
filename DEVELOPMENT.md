@@ -45,10 +45,14 @@ coverage-only cases, and counts executed and skipped tests separately.
 executes actual Git commands and verifies event hook arguments. It covers
 branch creation and commit updates, tag creation and force updates, fetch of
 remote branch creation and updates, notes and stash creation, an atomic
-`update-ref --stdin` rename, explicit deletion, and a config-based hook on
-Git 2.54+. `tests/integration/ref_events.sh` separately exercises the parser
-with supplied transactions; its synthetic rename cases are not evidence that
-`git branch -m` emits a complete transaction. Git versions where regular
+`update-ref --stdin` rename, explicit deletion, additional ref namespaces,
+and a config-based hook on Git 2.54+. On Git 2.54+, the suite also checks
+real symbolic `HEAD`, remote `HEAD`, root-ref transactions, arbitrary ref names
+outside `refs/*` and worktree-qualified aliases.
+`tests/integration/ref_events.sh` separately exercises the parser with
+supplied transactions, including root refs and symbolic `HEAD` changes; its
+synthetic rename cases are not evidence
+that `git branch -m` emits a complete transaction. Git versions where regular
 branch/tag deletions have unusable payloads are checked by the compatibility
 matrix instead of being treated as passing event delivery. The matrix also
 checks real `fetch`, `remote prune`, `remote rename`, `notes` and `stash`

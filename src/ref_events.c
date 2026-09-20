@@ -35,6 +35,7 @@ static int emit_update(bool dry_run, struct ref_update *update)
 	const char *args[4];
 
 	event_name(event, sizeof(event), update->ref_kind,
+		   update->ref_kind == REF_HEAD ? "updated" :
 		   ref_update_name(update->update_kind));
 	args[0] = short_refname(update->refname);
 	args[1] = update->refname;
@@ -42,6 +43,31 @@ static int emit_update(bool dry_run, struct ref_update *update)
 	args[3] = update->new_value;
 
 	update->consumed = true;
+	return emit_hook_event(dry_run, event, 4, args);
+}
+
+static int emit_head_semantic_event(bool dry_run, struct ref_update *update)
+{
+	const char *event = NULL;
+	const char *args[4];
+	bool old_symbolic = ref_value_is_symbolic(update->old_value);
+	bool new_symbolic = ref_value_is_symbolic(update->new_value);
+
+	if (!old_symbolic && !ref_value_is_zero(update->old_value) &&
+	    new_symbolic)
+		event = "head-attached";
+	else if (old_symbolic && !new_symbolic &&
+		 !ref_value_is_zero(update->new_value))
+		event = "head-detached";
+	else if (old_symbolic && new_symbolic)
+		event = "head-switched";
+	else
+		return 0;
+
+	args[0] = short_refname(update->refname);
+	args[1] = update->refname;
+	args[2] = update->old_value;
+	args[3] = update->new_value;
 	return emit_hook_event(dry_run, event, 4, args);
 }
 
@@ -89,7 +115,7 @@ int process_ref_events(struct updates *updates, bool dry_run)
 
 		if (deleted->consumed || !changes_value(deleted) ||
 		    deleted->update_kind != UPDATE_DELETE ||
-		    deleted->ref_kind == REF_OTHER)
+		    !ref_kind_supports_rename(deleted->ref_kind))
 			continue;
 
 		struct ref_update *created = unique_rename_target(updates, deleted);
@@ -109,6 +135,11 @@ int process_ref_events(struct updates *updates, bool dry_run)
 		status = emit_update(dry_run, update);
 		if (status)
 			return status;
+		if (update->ref_kind == REF_HEAD) {
+			status = emit_head_semantic_event(dry_run, update);
+			if (status)
+				return status;
+		}
 	}
 
 	return 0;

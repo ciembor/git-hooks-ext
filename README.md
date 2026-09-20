@@ -13,22 +13,61 @@
 
 ## About
 
-Git's `reference-transaction` hook reports raw object IDs and ref names. It
-does not tell a hook that a branch was created, a tag was deleted or a ref was
-renamed.
+Git's `reference-transaction` hook reports raw old and new values together
+with ref names. It does not tell a hook that a branch was created, a tag was
+deleted or a ref was renamed.
 
 `git-hooks-ext` turns those low-level updates into semantic events such as
-`branch-created`, `branch-deleted`, `tag-created` and `branch-renamed`. It also
-adds the worktree lifecycle events that Git does not provide.
+`branch-created`, `tag-deleted`, `remote-head-updated` and `ref-created`. It
+also adds the worktree lifecycle events that Git does not provide.
 
-Supported events are:
+Supported ref events are grouped by purpose:
 
-| Branch | Remote branch | Tag | Stash | Note |
-| --- | --- | --- | --- | --- |
-| `branch-created` | `remote-branch-created` | `tag-created` | `stash-created` | `note-created` |
-| `branch-deleted` | `remote-branch-deleted` | `tag-deleted` | `stash-deleted` | `note-deleted` |
-| `branch-updated` | `remote-branch-updated` | `tag-updated` | `stash-updated` | `note-updated` |
-| `branch-renamed` | `remote-branch-renamed` | `tag-renamed` | — | `note-renamed` |
+### Everyday refs
+
+| Ref class | Namespace | Events |
+| --- | --- | --- |
+| Branch | `refs/heads/*` | `branch-created`, `branch-deleted`, `branch-updated`, `branch-renamed` |
+| Remote branch | `refs/remotes/<remote>/*`, except `HEAD` | `remote-branch-created`, `remote-branch-deleted`, `remote-branch-updated`, `remote-branch-renamed` |
+| Tag | `refs/tags/*` | `tag-created`, `tag-deleted`, `tag-updated`, `tag-renamed` |
+| Note | `refs/notes/*` | `note-created`, `note-deleted`, `note-updated`, `note-renamed` |
+| Stash | `refs/stash` | `stash-created`, `stash-deleted`, `stash-updated` |
+
+### Specialized refs
+
+| Ref class | Namespace | Events |
+| --- | --- | --- |
+| Replace | `refs/replace/*` | `replace-created`, `replace-deleted`, `replace-updated` |
+| Prefetch | `refs/prefetch/*` | `prefetch-created`, `prefetch-deleted`, `prefetch-updated` |
+| Bisect | `refs/bisect/*` | `bisect-ref-created`, `bisect-ref-deleted`, `bisect-ref-updated` |
+| Rewritten | `refs/rewritten/*` | `rewritten-ref-created`, `rewritten-ref-deleted`, `rewritten-ref-updated` |
+| Per-worktree ref | `refs/worktree/*` | `worktree-ref-created`, `worktree-ref-deleted`, `worktree-ref-updated` |
+
+### Fallback refs
+
+| Ref class | Namespace | Events |
+| --- | --- | --- |
+| Other ref | Remaining `refs/*` names | `ref-created`, `ref-deleted`, `ref-updated` |
+| Root ref | Ref names outside `refs/*` handled by the ref backend | `root-ref-created`, `root-ref-deleted`, `root-ref-updated` |
+
+### Remote HEAD
+
+| Ref class | Namespace | Events |
+| --- | --- | --- |
+| Remote HEAD | `refs/remotes/<remote>/HEAD` | `remote-head-created`, `remote-head-deleted`, `remote-head-updated` |
+
+### HEAD events
+
+| Event | Emitted when |
+| --- | --- |
+| `head-updated` | Every changed `HEAD` value |
+| `head-attached` | `HEAD` changes from a known direct OID to a symbolic target |
+| `head-detached` | `HEAD` changes from a symbolic target to a known direct OID |
+| `head-switched` | `HEAD` changes between symbolic targets |
+
+The `worktree-ref-*` events describe updates under `refs/worktree/*`. They are
+separate from the `worktree-*` lifecycle events emitted by the extension's
+`git-hooks-ext worktree` frontend.
 
 | Worktree lifecycle |
 | --- |
@@ -178,8 +217,7 @@ git-hooks-ext add branch-created create-branch-env ./scripts/create-branch-env
 
 ## Hook Arguments
 
-When invoked, branch, remote-branch, tag, stash and note hooks receive
-positional arguments:
+Reference create, update and delete hooks receive positional arguments:
 
 ```text
 <short-name> <full-ref> <old-value> <new-value>
@@ -190,6 +228,11 @@ Rename hooks receive:
 ```text
 <old-short-name> <new-short-name> <old-ref> <new-ref> <object-value>
 ```
+
+Rename events are detected for branches, remote branches, tags and notes.
+The `head-attached`, `head-detached` and `head-switched` hooks use the same
+four arguments as `head-updated`. Symbolic values use Git's
+`ref:refs/heads/<name>` representation.
 
 Worktree creation, removal, pruning and repair hooks receive:
 
@@ -227,6 +270,30 @@ and `git tag -d` report `zero -> zero`, so they cannot produce semantic delete
 events through this bridge. Creation and explicit `git update-ref -d` remain
 usable. See the [Git compatibility matrix](#compatibility) for tested
 versions, ref backends and the reproducible probe.
+
+References not covered by a named namespace still produce `ref-created`,
+`ref-updated` or `ref-deleted` when their name is below `refs/`. Ref names
+outside `refs/*` that pass through the ref backend, including custom names
+such as `CUSTOM` and `misc/path`, produce `root-ref-*`. Direct `FETCH_HEAD`
+and `MERGE_HEAD` are pseudorefs and are not classified as root refs. Git's
+`main-worktree/` and `worktrees/<name>/` aliases for per-worktree refs are
+classified by their underlying ref name; hook arguments retain the full
+alias-qualified name. Git can pass alias-qualified `FETCH_HEAD` and
+`MERGE_HEAD` through the ref backend, and these emit `root-ref-*`.
+
+Every changed `HEAD` value produces `head-updated`. A known direct value
+changing to a symbolic value also produces `head-attached`; a symbolic value
+changing to a known direct value produces `head-detached`; and a change between
+different symbolic targets produces `head-switched`. Git can report an all-zero
+old value for ordinary `git symbolic-ref`, checkout and even explicit
+`git update-ref --no-deref HEAD` operations when `HEAD` already exists. In
+that case the extension emits only `head-updated`:
+it cannot safely infer the previous attachment state from a zero value.
+
+`remote-head-*` uses the first path component after `refs/remotes/` as the
+remote name. Remote names containing `/` are ambiguous with branch names
+ending in `/HEAD` when only the ref name is available; these are treated as
+remote branches by this classifier.
 
 Other ref commands can provide incomplete information too. In the tested Git
 versions, `git notes append`, `git notes remove` and a second `git stash push`
@@ -279,6 +346,30 @@ does not run these hooks.
 | `note-updated` | `git update-ref refs/notes/topic` | Git `≥ 2.28` |
 | `note-deleted` | `git update-ref -d refs/notes/topic` | Git `≥ 2.28` |
 | `note-renamed` | `git update-ref --stdin` (notes) | Git `≥ 2.28` |
+| `remote-head-created` | `git remote set-head origin main` | Git `≥ 2.54` |
+| `remote-head-created` | `git remote set-head origin topic` after fetch | Git `≥ 2.54` |
+| `remote-head-updated` | `git update-ref --stdin` (`symref-update`) | Git `≥ 2.54` |
+| `remote-head-deleted` | `git remote set-head -d origin` | ❌ |
+| `remote-head-deleted` | `git update-ref --stdin` (`symref-delete`) | Git `≥ 2.54` |
+| `replace-created` | `git replace <old> <new>` | Git `≥ 2.28` |
+| `replace-updated` | `git replace -f <old> <new>` | Git `≥ 2.28` |
+| `replace-deleted` | `git replace -d <old>` | Git `≥ 2.28` |
+| `prefetch-created` | `git fetch --prefetch origin` | Git `≥ 2.32` |
+| `prefetch-updated` | second `git fetch --prefetch origin` | Git `≥ 2.32` |
+| `bisect-ref-created` | `git bisect start <bad> <good>` | Git `≥ 2.28` |
+| `remote-head-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `replace-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `prefetch-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `bisect-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `rewritten-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `worktree-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `ref-*` | direct `git update-ref` | Git `≥ 2.28` |
+| `head-updated` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `head-attached` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `head-switched` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `remote-head-created` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `root-ref-*` | symbolic/ref-backend transaction | Git `≥ 2.54` |
+| `head-detached` | `git checkout --detach` | ❌ (Git reports an unknown old value) |
 | `worktree-created` | `git-hooks-ext worktree add` | Git `≥ 2.39.3` |
 | `worktree-removed` | `git-hooks-ext worktree remove` | Git `≥ 2.39.3` |
 | `worktree-moved` | `git-hooks-ext worktree move` | Git `≥ 2.39.3` |

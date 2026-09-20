@@ -58,6 +58,14 @@ SH
 		printf '%s\n' "$zero $one refs/heads/topic" |
 			assert_fails env GHE_TEST_PROCESS_UNKNOWN=1 "$bin" reference-transaction committed
 
+		cat > .git/hooks/head-attached <<'SH'
+#!/bin/sh
+exit 1
+SH
+		chmod +x .git/hooks/head-attached
+		printf '%s\n' "$one ref:refs/heads/main HEAD" |
+			assert_fails "$bin" reference-transaction committed
+
 		assert_fails env GHE_TEST_READ_ALL_POPEN_FAIL=1 "$bin" worktree prune --dry-run
 		assert_fails env GHE_TEST_READ_ALL_MALLOC_FAIL=1 "$bin" worktree prune --dry-run
 		env GHE_TEST_READ_ALL_SMALL_BUFFER=1 "$bin" worktree prune --dry-run

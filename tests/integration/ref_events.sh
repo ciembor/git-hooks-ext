@@ -153,10 +153,188 @@ test_note_updated() {
 		"note-updated commits refs/notes/commits $one $two"
 }
 
-test_ref_other_is_ignored() {
-	printf '%s\n' "$zero $one refs/changes/1" |
+assert_ref_family_events() {
+	family=$1
+	short=$2
+	refname=$3
+
+	assert_ref_event \
+		"$zero $one $refname" \
+		"$family-created $short $refname $zero $one"
+	assert_ref_event \
+		"$one $two $refname" \
+		"$family-updated $short $refname $one $two"
+	assert_ref_event \
+		"$two $zero $refname" \
+		"$family-deleted $short $refname $two $zero"
+}
+
+test_additional_ref_families() {
+	assert_ref_family_events remote-head origin/HEAD refs/remotes/origin/HEAD
+	assert_ref_event \
+		"ref:refs/remotes/origin/main ref:refs/remotes/origin/topic refs/remotes/origin/HEAD" \
+		"remote-head-updated origin/HEAD refs/remotes/origin/HEAD ref:refs/remotes/origin/main ref:refs/remotes/origin/topic"
+	assert_ref_event \
+		"ref:refs/remotes/origin/topic $zero refs/remotes/origin/HEAD" \
+		"remote-head-deleted origin/HEAD refs/remotes/origin/HEAD ref:refs/remotes/origin/topic $zero"
+	# A nested branch named HEAD is indistinguishable from a slash-named
+	# remote's HEAD in a ref-only transaction; use the first path component.
+	assert_ref_event \
+		"$zero $one refs/remotes/origin/topic/HEAD" \
+		"remote-branch-created origin/topic/HEAD refs/remotes/origin/topic/HEAD $zero $one"
+	assert_ref_family_events replace deadbeef refs/replace/deadbeef
+	assert_ref_family_events prefetch remotes/origin/main \
+		refs/prefetch/remotes/origin/main
+	assert_ref_family_events bisect-ref good-1 refs/bisect/good-1
+	assert_ref_family_events rewritten-ref topic refs/rewritten/topic
+	assert_ref_family_events worktree-ref private refs/worktree/private
+	assert_ref_family_events root-ref AUTO_MERGE AUTO_MERGE
+	assert_ref_family_events ref custom/topic refs/custom/topic
+}
+
+test_ref_namespace_boundaries() {
+	assert_ref_event \
+		"$zero $one refs/remotes/HEAD" \
+		"ref-created remotes/HEAD refs/remotes/HEAD $zero $one"
+	assert_ref_event \
+		"$zero $one refs/remotes/origin" \
+		"ref-created remotes/origin refs/remotes/origin $zero $one"
+	assert_ref_event \
+		"$zero $one refs/stash/topic" \
+		"ref-created stash/topic refs/stash/topic $zero $one"
+	assert_ref_event \
+		"$zero $one refs/prefetcher/topic" \
+		"ref-created prefetcher/topic refs/prefetcher/topic $zero $one"
+	assert_ref_event \
+		"$zero $one refs/worktrees/topic" \
+		"ref-created worktrees/topic refs/worktrees/topic $zero $one"
+}
+
+test_root_ref_classification() {
+	for refname in BISECT_EXPECTED_REV NOTES_MERGE_PARTIAL NOTES_MERGE_REF \
+		MERGE_AUTOSTASH CHERRY_PICK_HEAD CUSTOM lower_HEAD; do
+		assert_ref_event \
+			"$zero $one $refname" \
+			"root-ref-created $refname $refname $zero $one"
+	done
+	assert_ref_event \
+		"$zero $one misc/path" \
+		"root-ref-created misc/path misc/path $zero $one"
+
+	for refname in FETCH_HEAD MERGE_HEAD; do
+		printf '%s %s %s\n' "$zero" "$one" "$refname" |
+			"$bin" reference-transaction committed --dry-run >"$TEST_DIR/out"
+		test ! -s "$TEST_DIR/out"
+	done
+}
+
+test_worktree_ref_aliases() {
+	assert_ref_family_events root-ref AUTO_MERGE main-worktree/AUTO_MERGE
+	assert_ref_family_events root-ref AUTO_MERGE worktrees/topic/AUTO_MERGE
+	assert_ref_family_events bisect-ref good main-worktree/refs/bisect/good
+	assert_ref_family_events rewritten-ref commit \
+		worktrees/topic/refs/rewritten/commit
+	assert_ref_family_events worktree-ref private \
+		main-worktree/refs/worktree/private
+	assert_ref_family_events worktree-ref private \
+		worktrees/topic/refs/worktree/private
+	assert_ref_event \
+		"$zero $one main-worktree/AUTO_MERGE" \
+		"root-ref-created AUTO_MERGE main-worktree/AUTO_MERGE $zero $one"
+	assert_ref_event \
+		"$zero $one main-worktree/refs/bisect/good" \
+		"bisect-ref-created good main-worktree/refs/bisect/good $zero $one"
+	assert_ref_event \
+		"$zero $one worktrees/topic/refs/rewritten/commit" \
+		"rewritten-ref-created commit worktrees/topic/refs/rewritten/commit $zero $one"
+	assert_ref_event \
+		"ref:refs/heads/main ref:refs/heads/topic worktrees/topic/HEAD" \
+		"head-updated HEAD worktrees/topic/HEAD ref:refs/heads/main ref:refs/heads/topic
+head-switched HEAD worktrees/topic/HEAD ref:refs/heads/main ref:refs/heads/topic"
+	assert_ref_event \
+		"$one ref:refs/heads/main main-worktree/HEAD" \
+		"head-updated HEAD main-worktree/HEAD $one ref:refs/heads/main
+head-attached HEAD main-worktree/HEAD $one ref:refs/heads/main"
+	assert_ref_event \
+		"ref:refs/heads/main $one worktrees/topic/HEAD" \
+		"head-updated HEAD worktrees/topic/HEAD ref:refs/heads/main $one
+head-detached HEAD worktrees/topic/HEAD ref:refs/heads/main $one"
+	assert_ref_event \
+		"$zero $one main-worktree/refs/heads/topic" \
+		"root-ref-created main-worktree/refs/heads/topic main-worktree/refs/heads/topic $zero $one"
+	assert_ref_event \
+		"$zero $one main-worktree/FETCH_HEAD" \
+		"root-ref-created FETCH_HEAD main-worktree/FETCH_HEAD $zero $one"
+	assert_ref_event \
+		"$zero $one main-worktree/MERGE_HEAD" \
+		"root-ref-created MERGE_HEAD main-worktree/MERGE_HEAD $zero $one"
+	assert_ref_event \
+		"$zero $one worktrees/topic/FETCH_HEAD" \
+		"root-ref-created FETCH_HEAD worktrees/topic/FETCH_HEAD $zero $one"
+	assert_ref_event \
+		"$zero $one worktrees/topic/MERGE_HEAD" \
+		"root-ref-created MERGE_HEAD worktrees/topic/MERGE_HEAD $zero $one"
+}
+
+test_head_events() {
+	assert_ref_event \
+		"$one $two HEAD" \
+		"head-updated HEAD HEAD $one $two"
+	assert_ref_event \
+		"$one ref:refs/heads/main HEAD" \
+		"head-updated HEAD HEAD $one ref:refs/heads/main
+head-attached HEAD HEAD $one ref:refs/heads/main"
+	assert_ref_event \
+		"ref:refs/heads/main $one HEAD" \
+		"head-updated HEAD HEAD ref:refs/heads/main $one
+head-detached HEAD HEAD ref:refs/heads/main $one"
+	assert_ref_event \
+		"ref:refs/heads/main ref:refs/heads/topic HEAD" \
+		"head-updated HEAD HEAD ref:refs/heads/main ref:refs/heads/topic
+head-switched HEAD HEAD ref:refs/heads/main ref:refs/heads/topic"
+	assert_ref_event \
+		"$zero ref:refs/heads/main HEAD" \
+		"head-updated HEAD HEAD $zero ref:refs/heads/main"
+	assert_ref_event \
+		"ref:refs/heads/main $zero HEAD" \
+		"head-updated HEAD HEAD ref:refs/heads/main $zero"
+	assert_ref_event \
+		"$zero $one HEAD" \
+		"head-updated HEAD HEAD $zero $one"
+	printf '%s\n' 'ref:refs/heads/main ref:refs/heads/main HEAD' |
 		"$bin" reference-transaction committed --dry-run >"$TEST_DIR/out"
 	test ! -s "$TEST_DIR/out"
+}
+
+test_non_rename_families_emit_individual_updates() {
+	assert_ref_event \
+		"$one $zero refs/custom/old
+$zero $one refs/custom/new" \
+		"ref-deleted custom/old refs/custom/old $one $zero
+ref-created custom/new refs/custom/new $zero $one"
+	assert_ref_event \
+		"$one $zero refs/remotes/origin/HEAD
+$zero $one refs/remotes/upstream/HEAD" \
+		"remote-head-deleted origin/HEAD refs/remotes/origin/HEAD $one $zero
+remote-head-created upstream/HEAD refs/remotes/upstream/HEAD $zero $one"
+	assert_ref_event \
+		"$one $zero refs/prefetch/old
+$zero $one refs/prefetch/new" \
+		"prefetch-deleted old refs/prefetch/old $one $zero
+prefetch-created new refs/prefetch/new $zero $one"
+	assert_ref_event \
+		"$one $zero AUTO_MERGE
+$zero $one MERGE_AUTOSTASH" \
+		"root-ref-deleted AUTO_MERGE AUTO_MERGE $one $zero
+root-ref-created MERGE_AUTOSTASH MERGE_AUTOSTASH $zero $one"
+}
+
+test_ref_other_is_ignored() {
+	for refname in FETCH_HEAD MERGE_HEAD; do
+		printf '%s\n' "$zero $one $refname" |
+			"$bin" reference-transaction committed --dry-run >"$TEST_DIR/out"
+		test ! -s "$TEST_DIR/out"
+	done
 }
 
 test_unchanged_ref_is_ignored() {
@@ -172,7 +350,7 @@ test_large_transaction_grows_update_array() {
 	input=
 	i=0
 	while test "$i" -lt 9; do
-		input="${input}${zero} ${one} refs/changes/$i
+		input="${input}${zero} ${one} FETCH_HEAD
 "
 		i=$((i + 1))
 	done
@@ -243,6 +421,12 @@ register_ref_events_tests() {
 	test_expect_success "emits remote-branch-created" test_remote_branch_created
 	test_expect_success "emits stash-created" test_stash_created
 	test_expect_success "emits note-updated" test_note_updated
+	test_expect_success "classifies additional ref families" test_additional_ref_families
+	test_expect_success "keeps namespace boundary refs in fallback" test_ref_namespace_boundaries
+	test_expect_success "classifies supported root refs" test_root_ref_classification
+	test_expect_success "classifies worktree ref aliases" test_worktree_ref_aliases
+	test_expect_success "emits semantic HEAD events" test_head_events
+	test_expect_success "does not infer unsupported renames" test_non_rename_families_emit_individual_updates
 	test_expect_success "ignores unsupported refs" test_ref_other_is_ignored
 	test_expect_success "ignores unchanged refs" test_unchanged_ref_is_ignored
 	test_expect_success "grows update array" test_large_transaction_grows_update_array
