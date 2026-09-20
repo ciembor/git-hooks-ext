@@ -59,9 +59,9 @@ does not run these hooks.
 |:---|:---|:---:|
 | `branch-created` | `git branch topic` | Git `≥ 2.28` |
 | `branch-updated` | `git commit` | Git `≥ 2.28` |
-| `branch-deleted` | `git branch -D topic` | `2.28 ≤ Git ≤ 2.30` [²](https://lore.kernel.org/git/CACQ=SRHthWOLVXmY6wgknOPgpQ+oB1vV-Q0AL=mK9mXb2Xy9Nw@mail.gmail.com/T/#t) |
+| `branch-deleted` | `git branch -D topic` | `2.28 ≤ Git ≤ 2.30` [²](#git-bugs) |
 | `branch-deleted` | `git update-ref -d refs/heads/topic` | Git `≥ 2.28` |
-| `branch-renamed` | `git branch -m old new` | ❌ [¹](https://lore.kernel.org/git/CAOLa=ZTN1TU2A1sgEhiw=ymMYr6Ge11cMEubSaeKqr4WNU=2EQ@mail.gmail.com/T/#t) |
+| `branch-renamed` | `git branch -m old new` | ❌ [¹](#git-bugs) |
 | `branch-renamed` | `git update-ref --stdin` (heads) | Git `≥ 2.28` |
 | `remote-branch-created` | `git fetch origin` | Git `≥ 2.28` |
 | `remote-branch-updated` | `git fetch origin` | Git `≥ 2.28` |
@@ -71,7 +71,7 @@ does not run these hooks.
 | `remote-branch-renamed` | `git update-ref --stdin` (remotes) | Git `≥ 2.28` |
 | `tag-created` | `git tag v1` | Git `≥ 2.28` |
 | `tag-updated` | `git tag -f v1` | Git `≥ 2.28` |
-| `tag-deleted` | `git tag -d v1` | `2.28 ≤ Git ≤ 2.30` [²](https://lore.kernel.org/git/CACQ=SRHthWOLVXmY6wgknOPgpQ+oB1vV-Q0AL=mK9mXb2Xy9Nw@mail.gmail.com/T/#t) |
+| `tag-deleted` | `git tag -d v1` | `2.28 ≤ Git ≤ 2.30` [²](#git-bugs) |
 | `tag-deleted` | `git update-ref -d refs/tags/topic` | Git `≥ 2.28` |
 | `tag-renamed` | `git update-ref --stdin` (tags) | Git `≥ 2.28` |
 | `stash-created` | first `git stash push` | Git `≥ 2.28` |
@@ -117,6 +117,9 @@ does not run these hooks.
 | `worktree-repaired` | `git-hooks-ext worktree repair` | Git `≥ 2.39.3` |
 
 ## Git bugs
+
+Some compatibility gaps are caused by Git bugs, rather than limitations in
+`git-hooks-ext`. I filed these reports upstream with proposed fixes:
 
 1. [¹ `git branch -m` omits the destination ref from the `reference-transaction` hook](https://lore.kernel.org/git/CAOLa=ZTN1TU2A1sgEhiw=ymMYr6Ge11cMEubSaeKqr4WNU=2EQ@mail.gmail.com/T/#t).
 2. [² `git branch -D` and `git tag -d` report zero OIDs from Git 2.31 onward](https://lore.kernel.org/git/CACQ=SRHthWOLVXmY6wgknOPgpQ+oB1vV-Q0AL=mK9mXb2Xy9Nw@mail.gmail.com/T/#t).
