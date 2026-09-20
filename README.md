@@ -25,36 +25,36 @@ Supported ref events are grouped by purpose:
 
 ### Everyday refs
 
-| Ref class | Namespace | Events |
-| --- | --- | --- |
-| Branch | `refs/heads/*` | `branch-created`, `branch-deleted`, `branch-updated`, `branch-renamed` |
-| Remote branch | `refs/remotes/<remote>/*`, except `HEAD` | `remote-branch-created`, `remote-branch-deleted`, `remote-branch-updated`, `remote-branch-renamed` |
-| Tag | `refs/tags/*` | `tag-created`, `tag-deleted`, `tag-updated`, `tag-renamed` |
-| Note | `refs/notes/*` | `note-created`, `note-deleted`, `note-updated`, `note-renamed` |
-| Stash | `refs/stash` | `stash-created`, `stash-deleted`, `stash-updated` |
+| Ref | Created | Deleted | Updated | Renamed |
+| --- | --- | --- | --- | --- |
+| Branch | `branch-created` | `branch-deleted` | `branch-updated` | `branch-renamed` |
+| Remote branch | `remote-branch-created` | `remote-branch-deleted` | `remote-branch-updated` | `remote-branch-renamed` |
+| Tag | `tag-created` | `tag-deleted` | `tag-updated` | `tag-renamed` |
+| Note | `note-created` | `note-deleted` | `note-updated` | `note-renamed` |
+| Stash | `stash-created` | `stash-deleted` | `stash-updated` | — |
 
 ### Specialized refs
 
-| Ref class | Namespace | Events |
-| --- | --- | --- |
-| Replace | `refs/replace/*` | `replace-created`, `replace-deleted`, `replace-updated` |
-| Prefetch | `refs/prefetch/*` | `prefetch-created`, `prefetch-deleted`, `prefetch-updated` |
-| Bisect | `refs/bisect/*` | `bisect-ref-created`, `bisect-ref-deleted`, `bisect-ref-updated` |
-| Rewritten | `refs/rewritten/*` | `rewritten-ref-created`, `rewritten-ref-deleted`, `rewritten-ref-updated` |
-| Per-worktree ref | `refs/worktree/*` | `worktree-ref-created`, `worktree-ref-deleted`, `worktree-ref-updated` |
+| Ref | Created | Deleted | Updated | Renamed |
+| --- | --- | --- | --- | --- |
+| Replace | `replace-created` | `replace-deleted` | `replace-updated` | — |
+| Prefetch | `prefetch-created` | `prefetch-deleted` | `prefetch-updated` | — |
+| Bisect ref | `bisect-ref-created` | `bisect-ref-deleted` | `bisect-ref-updated` | — |
+| Rewritten ref | `rewritten-ref-created` | `rewritten-ref-deleted` | `rewritten-ref-updated` | — |
+| Per-worktree ref | `worktree-ref-created` | `worktree-ref-deleted` | `worktree-ref-updated` | — |
 
 ### Fallback refs
 
-| Ref class | Namespace | Events |
-| --- | --- | --- |
-| Other ref | Remaining `refs/*` names | `ref-created`, `ref-deleted`, `ref-updated` |
-| Root ref | Ref names outside `refs/*` handled by the ref backend | `root-ref-created`, `root-ref-deleted`, `root-ref-updated` |
+| Ref | Created | Deleted | Updated | Renamed |
+| --- | --- | --- | --- | --- |
+| Other `refs/*` | `ref-created` | `ref-deleted` | `ref-updated` | — |
+| Root ref | `root-ref-created` | `root-ref-deleted` | `root-ref-updated` | — |
 
 ### Remote HEAD
 
-| Ref class | Namespace | Events |
-| --- | --- | --- |
-| Remote HEAD | `refs/remotes/<remote>/HEAD` | `remote-head-created`, `remote-head-deleted`, `remote-head-updated` |
+| Ref | Created | Deleted | Updated | Renamed |
+| --- | --- | --- | --- | --- |
+| Remote HEAD | `remote-head-created` | `remote-head-deleted` | `remote-head-updated` | — |
 
 ### HEAD events
 
