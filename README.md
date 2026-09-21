@@ -25,58 +25,96 @@ Supported ref events are grouped by purpose:
 
 ### Everyday refs
 
-| Ref | Created | Deleted | Updated | Renamed |
-| --- | --- | --- | --- | --- |
-| Branch | `branch-created` | `branch-deleted` | `branch-updated` | `branch-renamed` |
-| Remote branch | `remote-branch-created` | `remote-branch-deleted` | `remote-branch-updated` | `remote-branch-renamed` |
-| Tag | `tag-created` | `tag-deleted` | `tag-updated` | `tag-renamed` |
-| Note | `note-created` | `note-deleted` | `note-updated` | `note-renamed` |
-| Stash | `stash-created` | `stash-deleted` | `stash-updated` | — |
+<table width="100%">
+  <thead>
+    <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th><th>Renamed</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Branch</td><td><code>branch-created</code></td><td><code>branch-deleted</code></td><td><code>branch-updated</code></td><td><code>branch-renamed</code></td></tr>
+    <tr><td>Remote branch</td><td><code>remote-branch-created</code></td><td><code>remote-branch-deleted</code></td><td><code>remote-branch-updated</code></td><td><code>remote-branch-renamed</code></td></tr>
+    <tr><td>Tag</td><td><code>tag-created</code></td><td><code>tag-deleted</code></td><td><code>tag-updated</code></td><td><code>tag-renamed</code></td></tr>
+    <tr><td>Note</td><td><code>note-created</code></td><td><code>note-deleted</code></td><td><code>note-updated</code></td><td><code>note-renamed</code></td></tr>
+    <tr><td>Stash</td><td><code>stash-created</code></td><td><code>stash-deleted</code></td><td><code>stash-updated</code></td><td>—</td></tr>
+  </tbody>
+</table>
 
 ### Specialized refs
 
-| Ref | Created | Deleted | Updated |
-| --- | --- | --- | --- |
-| Replace | `replace-created` | `replace-deleted` | `replace-updated` |
-| Prefetch | `prefetch-created` | `prefetch-deleted` | `prefetch-updated` |
-| Bisect ref | `bisect-ref-created` | `bisect-ref-deleted` | `bisect-ref-updated` |
-| Rewritten ref | `rewritten-ref-created` | `rewritten-ref-deleted` | `rewritten-ref-updated` |
-| Per-worktree ref | `worktree-ref-created` | `worktree-ref-deleted` | `worktree-ref-updated` |
+<table width="100%">
+  <thead>
+    <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Replace</td><td><code>replace-created</code></td><td><code>replace-deleted</code></td><td><code>replace-updated</code></td></tr>
+    <tr><td>Prefetch</td><td><code>prefetch-created</code></td><td><code>prefetch-deleted</code></td><td><code>prefetch-updated</code></td></tr>
+    <tr><td>Bisect ref</td><td><code>bisect-ref-created</code></td><td><code>bisect-ref-deleted</code></td><td><code>bisect-ref-updated</code></td></tr>
+    <tr><td>Rewritten ref</td><td><code>rewritten-ref-created</code></td><td><code>rewritten-ref-deleted</code></td><td><code>rewritten-ref-updated</code></td></tr>
+    <tr><td>Per-worktree ref</td><td><code>worktree-ref-created</code></td><td><code>worktree-ref-deleted</code></td><td><code>worktree-ref-updated</code></td></tr>
+  </tbody>
+</table>
 
 ### Fallback refs
 
-| Ref | Created | Deleted | Updated |
-| --- | --- | --- | --- |
-| Other `refs/*` | `ref-created` | `ref-deleted` | `ref-updated` |
-| Root ref | `root-ref-created` | `root-ref-deleted` | `root-ref-updated` |
+<table width="100%">
+  <thead>
+    <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Other <code>refs/*</code></td><td><code>ref-created</code></td><td><code>ref-deleted</code></td><td><code>ref-updated</code></td></tr>
+    <tr><td>Root ref</td><td><code>root-ref-created</code></td><td><code>root-ref-deleted</code></td><td><code>root-ref-updated</code></td></tr>
+  </tbody>
+</table>
 
 ### Remote HEAD
 
-| Ref | Created | Deleted | Updated |
-| --- | --- | --- | --- |
-| Remote HEAD | `remote-head-created` | `remote-head-deleted` | `remote-head-updated` |
+<table width="100%">
+  <thead>
+    <tr><th>Ref</th><th>Created</th><th>Deleted</th><th>Updated</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Remote HEAD</td><td><code>remote-head-created</code></td><td><code>remote-head-deleted</code></td><td><code>remote-head-updated</code></td></tr>
+  </tbody>
+</table>
 
-### HEAD events
+### HEAD
 
-| Event | Emitted when |
-| --- | --- |
-| `head-updated` | Every changed `HEAD` value |
-| `head-attached` | `HEAD` changes from a known direct OID to a symbolic target |
-| `head-detached` | `HEAD` changes from a symbolic target to a known direct OID |
-| `head-switched` | `HEAD` changes between symbolic targets |
+<table width="100%">
+  <thead>
+    <tr><th>HEAD</th><th>Updated</th><th>Attached</th><th>Detached</th><th>Switched</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>HEAD</td><td><code>head-updated</code></td><td><code>head-attached</code></td><td><code>head-detached</code></td><td><code>head-switched</code></td></tr>
+  </tbody>
+</table>
 
 The `worktree-ref-*` events describe updates under `refs/worktree/*`. They are
-separate from the `worktree-*` lifecycle events emitted by the extension's
-`git-hooks-ext worktree` frontend.
+separate from the lifecycle events below.
 
-| Worktree lifecycle |
-| --- |
-| `worktree-created` |
-| `worktree-removed` |
-| `worktree-moved` |
-| `worktree-locked` / `worktree-unlocked` |
-| `worktree-pruned` |
-| `worktree-repaired` |
+### Worktree lifecycle
+
+Git has no hook for observing
+worktree lifecycle operations, so `worktree-*` events are available only when
+the command is run through the `git-hooks-ext worktree` wrapper.
+
+<table width="100%">
+  <thead>
+    <tr><th>Wrapper command</th><th>Event</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>git-hooks-ext worktree add</code></td><td><code>worktree-created</code></td></tr>
+    <tr><td><code>git-hooks-ext worktree remove</code></td><td><code>worktree-removed</code></td></tr>
+    <tr><td><code>git-hooks-ext worktree move</code></td><td><code>worktree-moved</code></td></tr>
+    <tr><td><code>git-hooks-ext worktree lock</code></td><td><code>worktree-locked</code></td></tr>
+    <tr><td><code>git-hooks-ext worktree unlock</code></td><td><code>worktree-unlocked</code></td></tr>
+    <tr><td><code>git-hooks-ext worktree prune</code></td><td><code>worktree-pruned</code></td></tr>
+    <tr><td><code>git-hooks-ext worktree repair</code></td><td><code>worktree-repaired</code></td></tr>
+  </tbody>
+</table>
+
+The wrapper forwards all arguments to `git worktree`, compares the worktree
+state before and after a successful mutating command, and emits the observed
+lifecycle events. Calling `git worktree` directly bypasses it and cannot emit
+these events.
 
 Event names are identical in Git config, classic hook filenames and dry-run
 output. The [command compatibility matrix](#compatibility)
@@ -317,66 +355,71 @@ when a higher-level command omits usable transaction data. Rows for
 `git-hooks-ext worktree` use the extension's frontend; plain `git worktree`
 does not run these hooks.
 
-| Hook | Command | Supported Git versions |
-|:---|:---|:---:|
-| `branch-created` | `git branch topic` | Git `≥ 2.28` |
-| `branch-updated` | `git commit` | Git `≥ 2.28` |
-| `branch-deleted` | `git branch -D topic` | `2.28 ≤ Git ≤ 2.30` [²](#git-bugs) |
-| `branch-deleted` | `git update-ref -d refs/heads/topic` | Git `≥ 2.28` |
-| `branch-renamed` | `git branch -m old new` | ❌ [¹](#git-bugs) |
-| `branch-renamed` | `git update-ref --stdin` (heads) | Git `≥ 2.28` |
-| `remote-branch-created` | `git fetch origin` | Git `≥ 2.28` |
-| `remote-branch-updated` | `git fetch origin` | Git `≥ 2.28` |
-| `remote-branch-deleted` | `git remote prune origin` | ❌ [²](#git-bugs) |
-| `remote-branch-deleted` | `git update-ref -d refs/remotes/origin/topic` | Git `≥ 2.28` |
-| `remote-branch-renamed` | `git remote rename origin upstream` | Git `≥ 2.55` |
-| `remote-branch-renamed` | `git update-ref --stdin` (remotes) | Git `≥ 2.28` |
-| `tag-created` | `git tag v1` | Git `≥ 2.28` |
-| `tag-updated` | `git tag -f v1` | Git `≥ 2.28` |
-| `tag-deleted` | `git tag -d v1` | `2.28 ≤ Git ≤ 2.30` [²](#git-bugs) |
-| `tag-deleted` | `git update-ref -d refs/tags/topic` | Git `≥ 2.28` |
-| `tag-renamed` | `git update-ref --stdin` (tags) | Git `≥ 2.28` |
-| `stash-created` | first `git stash push` | Git `≥ 2.28` |
-| `stash-updated` | second `git stash push` | ❌ |
-| `stash-updated` | `git update-ref refs/stash` | Git `≥ 2.28` |
-| `stash-deleted` | `git stash clear` | Git `≥ 2.28` |
-| `note-created` | `git notes add` | Git `≥ 2.28` |
-| `note-updated` | `git notes append` | ❌ |
-| `note-updated` | `git notes remove` | ❌ |
-| `note-updated` | `git update-ref refs/notes/topic` | Git `≥ 2.28` |
-| `note-deleted` | `git update-ref -d refs/notes/topic` | Git `≥ 2.28` |
-| `note-renamed` | `git update-ref --stdin` (notes) | Git `≥ 2.28` |
-| `remote-head-created` | `git remote set-head origin main` | Git `≥ 2.54` |
-| `remote-head-created` | `git remote set-head origin topic` after fetch | Git `≥ 2.54` |
-| `remote-head-updated` | `git update-ref --stdin` (`symref-update`) | Git `≥ 2.54` |
-| `remote-head-deleted` | `git remote set-head -d origin` | ❌ |
-| `remote-head-deleted` | `git update-ref --stdin` (`symref-delete`) | Git `≥ 2.54` |
-| `replace-created` | `git replace <old> <new>` | Git `≥ 2.28` |
-| `replace-updated` | `git replace -f <old> <new>` | Git `≥ 2.28` |
-| `replace-deleted` | `git replace -d <old>` | Git `≥ 2.28` |
-| `prefetch-created` | `git fetch --prefetch origin` | Git `≥ 2.32` |
-| `prefetch-updated` | second `git fetch --prefetch origin` | Git `≥ 2.32` |
-| `bisect-ref-created` | `git bisect start <bad> <good>` | Git `≥ 2.28` |
-| `remote-head-*` | direct `git update-ref` | Git `≥ 2.28` |
-| `replace-*` | direct `git update-ref` | Git `≥ 2.28` |
-| `prefetch-*` | direct `git update-ref` | Git `≥ 2.28` |
-| `bisect-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
-| `rewritten-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
-| `worktree-ref-*` | direct `git update-ref` | Git `≥ 2.28` |
-| `ref-*` | direct `git update-ref` | Git `≥ 2.28` |
-| `head-updated` | symbolic/ref-backend transaction | Git `≥ 2.54` |
-| `head-attached` | symbolic/ref-backend transaction | Git `≥ 2.54` |
-| `head-switched` | symbolic/ref-backend transaction | Git `≥ 2.54` |
-| `remote-head-created` | symbolic/ref-backend transaction | Git `≥ 2.54` |
-| `root-ref-*` | symbolic/ref-backend transaction | Git `≥ 2.54` |
-| `head-detached` | `git checkout --detach` | ❌ |
-| `worktree-created` | `git-hooks-ext worktree add` | Git `≥ 2.39.3` |
-| `worktree-removed` | `git-hooks-ext worktree remove` | Git `≥ 2.39.3` |
-| `worktree-moved` | `git-hooks-ext worktree move` | Git `≥ 2.39.3` |
-| `worktree-locked` | `git-hooks-ext worktree lock` | Git `≥ 2.39.3` |
-| `worktree-unlocked` | `git-hooks-ext worktree unlock` | Git `≥ 2.39.3` |
-| `worktree-pruned` | `git-hooks-ext worktree prune` | Git `≥ 2.39.3` |
-| `worktree-repaired` | `git-hooks-ext worktree repair` | Git `≥ 2.39.3` |
+<table width="100%">
+  <thead>
+    <tr><th>Hook</th><th>Command</th><th>Supported Git versions</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>branch-created</code></td><td><code>git branch topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>branch-updated</code></td><td><code>git commit</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>branch-deleted</code></td><td><code>git branch -D topic</code></td><td><code>2.28 ≤ Git ≤ 2.30</code> <a href="#git-bugs">²</a></td></tr>
+    <tr><td><code>branch-deleted</code></td><td><code>git update-ref -d refs/heads/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>branch-renamed</code></td><td><code>git branch -m old new</code></td><td>❌ <a href="#git-bugs">¹</a></td></tr>
+    <tr><td><code>branch-renamed</code></td><td><code>git update-ref --stdin</code> (heads)</td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>remote-branch-created</code></td><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>remote-branch-updated</code></td><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>remote-branch-deleted</code></td><td><code>git remote prune origin</code></td><td>❌ <a href="#git-bugs">²</a></td></tr>
+    <tr><td><code>remote-branch-deleted</code></td><td><code>git update-ref -d refs/remotes/origin/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>remote-branch-renamed</code></td><td><code>git remote rename origin upstream</code></td><td>Git <code>≥ 2.55</code></td></tr>
+    <tr><td><code>remote-branch-renamed</code></td><td><code>git update-ref --stdin</code> (remotes)</td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>tag-created</code></td><td><code>git tag v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>tag-updated</code></td><td><code>git tag -f v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>tag-deleted</code></td><td><code>git tag -d v1</code></td><td><code>2.28 ≤ Git ≤ 2.30</code> <a href="#git-bugs">²</a></td></tr>
+    <tr><td><code>tag-deleted</code></td><td><code>git update-ref -d refs/tags/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>tag-renamed</code></td><td><code>git update-ref --stdin</code> (tags)</td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>stash-created</code></td><td>first <code>git stash push</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>stash-updated</code></td><td>second <code>git stash push</code></td><td>❌</td></tr>
+    <tr><td><code>stash-updated</code></td><td><code>git update-ref refs/stash</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>stash-deleted</code></td><td><code>git stash clear</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>note-created</code></td><td><code>git notes add</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>note-updated</code></td><td><code>git notes append</code></td><td>❌</td></tr>
+    <tr><td><code>note-updated</code></td><td><code>git notes remove</code></td><td>❌</td></tr>
+    <tr><td><code>note-updated</code></td><td><code>git update-ref refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>note-deleted</code></td><td><code>git update-ref -d refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>note-renamed</code></td><td><code>git update-ref --stdin</code> (notes)</td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>remote-head-created</code></td><td><code>git remote set-head origin main</code></td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>remote-head-created</code></td><td><code>git remote set-head origin topic</code> after fetch</td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>remote-head-updated</code></td><td><code>git update-ref --stdin</code> (<code>symref-update</code>)</td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>remote-head-deleted</code></td><td><code>git remote set-head -d origin</code></td><td>❌</td></tr>
+    <tr><td><code>remote-head-deleted</code></td><td><code>git update-ref --stdin</code> (<code>symref-delete</code>)</td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>replace-created</code></td><td><code>git replace &lt;old&gt; &lt;new&gt;</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>replace-updated</code></td><td><code>git replace -f &lt;old&gt; &lt;new&gt;</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>replace-deleted</code></td><td><code>git replace -d &lt;old&gt;</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>prefetch-created</code></td><td><code>git fetch --prefetch origin</code></td><td>Git <code>≥ 2.32</code></td></tr>
+    <tr><td><code>prefetch-updated</code></td><td>second <code>git fetch --prefetch origin</code></td><td>Git <code>≥ 2.32</code></td></tr>
+    <tr><td><code>bisect-ref-created</code></td><td><code>git bisect start &lt;bad&gt; &lt;good&gt;</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>remote-head-*</code></td><td>direct <code>git update-ref</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>replace-*</code></td><td>direct <code>git update-ref</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>prefetch-*</code></td><td>direct <code>git update-ref</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>bisect-ref-*</code></td><td>direct <code>git update-ref</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>rewritten-ref-*</code></td><td>direct <code>git update-ref</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>worktree-ref-*</code></td><td>direct <code>git update-ref</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>ref-*</code></td><td>direct <code>git update-ref</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>head-updated</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>head-attached</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>head-switched</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>remote-head-created</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>root-ref-*</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
+    <tr><td><code>head-detached</code></td><td><code>git checkout --detach</code></td><td>❌</td></tr>
+    <tr><td><code>worktree-created</code></td><td><code>git-hooks-ext worktree add</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-removed</code></td><td><code>git-hooks-ext worktree remove</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-moved</code></td><td><code>git-hooks-ext worktree move</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-locked</code></td><td><code>git-hooks-ext worktree lock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-unlocked</code></td><td><code>git-hooks-ext worktree unlock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-pruned</code></td><td><code>git-hooks-ext worktree prune</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-repaired</code></td><td><code>git-hooks-ext worktree repair</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+  </tbody>
+</table>
 
 ### Git bugs
 

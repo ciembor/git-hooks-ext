@@ -147,15 +147,12 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
 	              </tbody>
 	            </table>
 	          </div>
-	          <h3>HEAD events</h3>
+	          <h3>HEAD</h3>
 	          <div class="table-wrap">
 	            <table>
-	              <thead><tr><th>Event</th><th>Emitted when</th></tr></thead>
+	              <thead><tr><th>HEAD</th><th>Updated</th><th>Attached</th><th>Detached</th><th>Switched</th></tr></thead>
 	              <tbody>
-	                <tr><th><code>head-updated</code></th><td>Every changed <code>HEAD</code> value</td></tr>
-	                <tr><th><code>head-attached</code></th><td><code>HEAD</code> changes from a known direct OID to a symbolic target</td></tr>
-	                <tr><th><code>head-detached</code></th><td><code>HEAD</code> changes from a symbolic target to a known direct OID</td></tr>
-	                <tr><th><code>head-switched</code></th><td><code>HEAD</code> changes between symbolic targets</td></tr>
+	                <tr><th>HEAD</th><td><code>head-updated</code></td><td><code>head-attached</code></td><td><code>head-detached</code></td><td><code>head-switched</code></td></tr>
 	              </tbody>
 	            </table>
 	          </div>
@@ -192,19 +189,32 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
             <code>git update-ref --no-deref HEAD</code> detach.
           </p>
           <h3>Worktree lifecycle</h3>
+          <p>
+            Git has no hook for observing worktree lifecycle operations, so
+            these events are available only through the
+            <code>git-hooks-ext worktree</code> wrapper.
+          </p>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Action</th><th>Event</th></tr></thead>
+              <thead><tr><th>Wrapper command</th><th>Event</th></tr></thead>
               <tbody>
-                <tr><th>Create</th><td><code>worktree-created</code></td></tr>
-                <tr><th>Remove</th><td><code>worktree-removed</code></td></tr>
-                <tr><th>Move</th><td><code>worktree-moved</code></td></tr>
-                <tr><th>Lock / unlock</th><td><code>worktree-locked</code> / <code>worktree-unlocked</code></td></tr>
-                <tr><th>Prune</th><td><code>worktree-pruned</code></td></tr>
-                <tr><th>Repair</th><td><code>worktree-repaired</code></td></tr>
+                <tr><th><code>git-hooks-ext worktree add</code></th><td><code>worktree-created</code></td></tr>
+                <tr><th><code>git-hooks-ext worktree remove</code></th><td><code>worktree-removed</code></td></tr>
+                <tr><th><code>git-hooks-ext worktree move</code></th><td><code>worktree-moved</code></td></tr>
+                <tr><th><code>git-hooks-ext worktree lock</code></th><td><code>worktree-locked</code></td></tr>
+                <tr><th><code>git-hooks-ext worktree unlock</code></th><td><code>worktree-unlocked</code></td></tr>
+                <tr><th><code>git-hooks-ext worktree prune</code></th><td><code>worktree-pruned</code></td></tr>
+                <tr><th><code>git-hooks-ext worktree repair</code></th><td><code>worktree-repaired</code></td></tr>
               </tbody>
             </table>
           </div>
+	          <p>
+            The wrapper forwards all arguments to <code>git worktree</code>,
+            compares the worktree state before and after a successful mutating
+            command, and emits the observed lifecycle events. Calling
+            <code>git worktree</code> directly bypasses it and cannot emit
+            these events.
+          </p>
         </section>
 
         <section id="quick-start">
