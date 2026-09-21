@@ -269,7 +269,7 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
                 <tr><th scope="row"><code>branch-renamed</code></th><td><code>git update-ref --stdin</code> (heads)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-created</code></th><td><code>git fetch origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-updated</code></th><td><code>git fetch origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git remote prune origin</code></td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git remote prune origin</code></td><td class="status-no">❌ <a href="#git-bugs">²</a></td></tr>
                 <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git update-ref -d refs/remotes/origin/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git remote rename origin upstream</code></td><td class="status-partial">Git <code>≥ 2.55</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git update-ref --stdin</code> (remotes)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>

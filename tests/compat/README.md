@@ -65,7 +65,7 @@ does not run these hooks.
 | `branch-renamed` | `git update-ref --stdin` (heads) | Git `≥ 2.28` |
 | `remote-branch-created` | `git fetch origin` | Git `≥ 2.28` |
 | `remote-branch-updated` | `git fetch origin` | Git `≥ 2.28` |
-| `remote-branch-deleted` | `git remote prune origin` | ❌ |
+| `remote-branch-deleted` | `git remote prune origin` | ❌ [²](#git-bugs) |
 | `remote-branch-deleted` | `git update-ref -d refs/remotes/origin/topic` | Git `≥ 2.28` |
 | `remote-branch-renamed` | `git remote rename origin upstream` | Git `≥ 2.55` |
 | `remote-branch-renamed` | `git update-ref --stdin` (remotes) | Git `≥ 2.28` |
