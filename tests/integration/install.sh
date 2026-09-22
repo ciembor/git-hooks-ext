@@ -34,6 +34,21 @@ test_uninstall_removes_config_based_bridge() {
 	)
 }
 
+test_uninstall_removes_global_config_based_bridge() {
+	create_repo
+	global_config="$TEST_DIR/global.gitconfig"
+
+	(
+		cd "$repo"
+		GIT_CONFIG_GLOBAL="$global_config" GIT_CONFIG_NOSYSTEM=1 \
+			install_config_bridge --global
+		env GIT_CONFIG_GLOBAL="$global_config" GIT_CONFIG_NOSYSTEM=1 \
+			"$bin" uninstall --global
+		! git config --file "$global_config" --get hook.git-hooks-ext.event
+		! git config --file "$global_config" --get hook.git-hooks-ext.command
+	)
+}
+
 test_uninstall_removes_owned_legacy_bridge() {
 	create_repo
 
@@ -55,6 +70,22 @@ test_uninstall_preserves_unrecognized_legacy_hook() {
 		chmod +x .git/hooks/reference-transaction
 		"$bin" uninstall
 		test -x .git/hooks/reference-transaction
+	)
+}
+
+test_uninstall_reports_legacy_bridge_removal_failures() {
+	coverage_only || test_skip "requires a coverage build"
+	create_repo
+
+	(
+		cd "$repo"
+		install_legacy_bridge
+		assert_fails env GHE_TEST_LEGACY_OPEN_FAIL=1 "$bin" uninstall
+		test -e .git/hooks/reference-transaction
+		assert_fails env GHE_TEST_LEGACY_UNLINK_FAIL=1 "$bin" uninstall
+		test -e .git/hooks/reference-transaction
+		"$bin" uninstall
+		test ! -e .git/hooks/reference-transaction
 	)
 }
 
@@ -116,6 +147,24 @@ test_legacy_install_rejects_nonlocal_scope() {
 	)
 }
 
+test_uninstall_reports_unresolved_legacy_hook_path() {
+	create_repo
+	create_fake_git <<'SH'
+#!/bin/sh
+if test "$1 $2 $3" = "config --local --unset-all"; then
+	exit 5
+fi
+if test "$1 $2 $3" = "rev-parse --git-path hooks"; then
+	exit 1
+fi
+exec /usr/bin/git "$@"
+SH
+	(
+		cd "$repo"
+		assert_fails env PATH="$fakebin:$PATH" "$bin" uninstall
+	)
+}
+
 test_legacy_reports_directory_creation_error() {
 	create_repo
 	(
@@ -157,13 +206,16 @@ register_install_tests() {
 	test_expect_success "installs config-based bridge" test_install_writes_config_based_bridge
 	test_expect_success "installs config bridge with explicit scope" test_install_accepts_local_scope
 	test_expect_success "uninstalls config-based bridge" test_uninstall_removes_config_based_bridge
+	test_expect_success "uninstalls global config bridge" test_uninstall_removes_global_config_based_bridge
 	test_expect_success "uninstalls its legacy bridge" test_uninstall_removes_owned_legacy_bridge
 	test_expect_success "preserves an unrecognized legacy hook" test_uninstall_preserves_unrecognized_legacy_hook
+	test_expect_success "reports legacy bridge removal failures" test_uninstall_reports_legacy_bridge_removal_failures
 	test_expect_success "rejects bad install args" test_install_rejects_bad_args
 	test_expect_success "returns first install config failure" test_install_returns_first_config_failure
 	test_expect_success "creates a missing hooks directory" test_legacy_creates_hooks_directory
 	test_expect_success "legacy install explains the Git upgrade migration" test_legacy_install_explains_upgrade
 	test_expect_success "legacy install rejects nonlocal scope" test_legacy_install_rejects_nonlocal_scope
+	test_expect_success "uninstall reports an unresolved legacy hook path" test_uninstall_reports_unresolved_legacy_hook_path
 	test_expect_success "reports directory creation errors before writing a hook" test_legacy_reports_directory_creation_error
 	test_expect_success "empty hooks path uses the current directory" test_empty_hooks_path_uses_current_directory
 	test_expect_success "legacy install reports invalid hooks dir" test_legacy_install_fails_without_git_hooks_dir

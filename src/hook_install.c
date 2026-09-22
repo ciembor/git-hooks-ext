@@ -119,6 +119,11 @@ int remove_legacy_bridge(void)
 		return 1;
 	}
 	hook = fopen(hook_path, "r");
+	if (coverage_fail("GHE_TEST_LEGACY_OPEN_FAIL")) {
+		if (hook)
+			fclose(hook);
+		hook = NULL;
+	}
 	if (!hook) {
 		if (access(hook_path, F_OK) == 0) {
 			perror(hook_path);
@@ -134,7 +139,8 @@ int remove_legacy_bridge(void)
 		free(hook_path);
 		return 0;
 	}
-	if (fclose(hook) != 0 || unlink(hook_path) != 0) {
+	if (fclose(hook) != 0 || coverage_fail("GHE_TEST_LEGACY_UNLINK_FAIL") ||
+	    unlink(hook_path) != 0) {
 		perror(hook_path);
 		status = 1;
 	}

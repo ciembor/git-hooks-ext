@@ -7,12 +7,19 @@
 #include <string.h>
 
 #include "git_runner.h"
+#include "coverage.h"
 #include "process.h"
 #include "shell_command.h"
 
 static char *hook_key(const char *name, const char *field)
 {
 	char *key = malloc(strlen("hook..") + strlen(name) + strlen(field) + 1);
+	if (coverage_fail("GHE_TEST_HOOK_KEY_MALLOC_FAIL") ||
+	    (strcmp(field, "command") == 0 &&
+	     coverage_fail("GHE_TEST_HOOK_COMMAND_KEY_MALLOC_FAIL"))) {
+		free(key);
+		key = NULL;
+	}
 
 	if (!key) {
 		perror("malloc");
@@ -30,11 +37,13 @@ static char *read_config_value(const char *scope, const char *key)
 	size_t command_len;
 
 	quoted_key = shell_quote(key);
-	if (!quoted_key)
-		return NULL;
 	command_len = strlen("git config  --get ") + strlen(scope) +
 		strlen(quoted_key) + 1;
 	command = malloc(command_len);
+	if (coverage_fail("GHE_TEST_HOOK_MANAGE_COMMAND_MALLOC_FAIL")) {
+		free(command);
+		command = NULL;
+	}
 	if (!command) {
 		perror("malloc");
 		free(quoted_key);
@@ -62,6 +71,37 @@ static int print_hook(const char *scope, const char *name, const char *event)
 	return 0;
 }
 
+static int list_event_hook(const char *scope, char *key, const char *event)
+{
+	const char prefix[] = "hook.";
+	const char suffix[] = ".event";
+	char *name;
+	size_t key_len = strlen(key);
+	int status;
+
+	if (key_len <= strlen("hook..event") ||
+	    strncmp(key, prefix, strlen(prefix)) != 0 ||
+	    strcmp(key + key_len - strlen(suffix), suffix) != 0)
+		return 0;
+	name = strndup(key + strlen(prefix),
+	       key_len - strlen(prefix) - strlen(suffix));
+	if (coverage_fail("GHE_TEST_HOOK_MANAGE_STRNDUP_FAIL")) {
+		free(name);
+		name = NULL;
+	}
+	if (!name) {
+		perror("strndup");
+		return 1;
+	}
+	if (strcmp(name, "git-hooks-ext") == 0) {
+		free(name);
+		return 0;
+	}
+	status = print_hook(scope, name, event);
+	free(name);
+	return status;
+}
+
 int list_event_hooks(const char *scope)
 {
 	char command[128];
@@ -83,31 +123,15 @@ int list_event_hooks(const char *scope)
 	while (*line) {
 		char *next = strchr(line, '\n');
 		char *separator = strchr(line, ' ');
-		char *name;
-		size_t key_len;
 
 		if (next)
 			*next = '\0';
 		if (separator) {
 			*separator = '\0';
-			key_len = strlen(line);
-			if (key_len > strlen("hook..event") &&
-			    strncmp(line, "hook.", strlen("hook.")) == 0 &&
-			    strcmp(line + key_len - strlen(".event"), ".event") == 0) {
-				name = strndup(line + strlen("hook."),
-					       key_len - strlen("hook.") - strlen(".event"));
-				if (!name) {
-					perror("strndup");
-					free(output);
-					return 1;
-				}
-				if (strcmp(name, "git-hooks-ext") != 0)
-					status = print_hook(scope, name, separator + 1);
-				free(name);
-				if (status) {
-					free(output);
-					return status;
-				}
+			status = list_event_hook(scope, line, separator + 1);
+			if (status) {
+				free(output);
+				return status;
 			}
 		}
 		if (!next)

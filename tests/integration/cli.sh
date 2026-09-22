@@ -72,6 +72,9 @@ SH
 		grep -Eq '^branch-deleted +requires Git 2.28\+$' "$TEST_DIR/old-doctor"
 		grep -Eq '^Ref backend: +files$' "$TEST_DIR/old-doctor"
 
+		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=2.28.0 "$bin" doctor >"$TEST_DIR/2.28-doctor"
+		grep -Eq '^tag-deleted +supported$' "$TEST_DIR/2.28-doctor"
+
 		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=2.54.0 "$bin" doctor >"$TEST_DIR/new-doctor"
 		grep -Eq '^Ref backend: +reftable$' "$TEST_DIR/new-doctor"
 		grep -Eq '^Config-based hooks: +supported$' "$TEST_DIR/new-doctor"
@@ -80,6 +83,26 @@ SH
 
 		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=3.0.0 "$bin" doctor >"$TEST_DIR/major-doctor"
 		grep -Eq '^remote-branch-renamed +supported$' "$TEST_DIR/major-doctor"
+	)
+}
+
+test_doctor_handles_an_unavailable_ref_backend() {
+	create_repo
+	create_fake_git <<'SH'
+#!/bin/sh
+case "$1 $2" in
+  "rev-parse --git-dir") printf '%s\n' .git ;;
+  "--version ") printf '%s\n' 'git version 2.54.0' ;;
+  "rev-parse --show-ref-format") exit 1 ;;
+  "rev-parse --git-path") printf '%s\n' .git/hooks/reference-transaction ;;
+  "config --get") exit 1 ;;
+  *) exec /usr/bin/git "$@" ;;
+esac
+SH
+	(
+		cd "$repo"
+		env PATH="$fakebin:$PATH" "$bin" doctor >"$TEST_DIR/doctor"
+		grep -Eq '^Ref backend: +unknown$' "$TEST_DIR/doctor"
 	)
 }
 
@@ -102,6 +125,65 @@ SH
 		cd "$repo"
 		assert_fails env PATH="$fakebin:$PATH" "$bin" doctor >"$TEST_DIR/out" 2>"$TEST_DIR/err"
 		grep -Fqx 'git-hooks-ext: failed to determine the Git version' "$TEST_DIR/command.err"
+	)
+}
+
+test_doctor_reports_unknown_legacy_bridge_path() {
+	create_repo
+	create_fake_git <<'SH'
+#!/bin/sh
+case "$1 $2" in
+  "rev-parse --git-dir") printf '%s\n' .git ;;
+  "--version ") printf '%s\n' 'git version 2.54.0' ;;
+  "rev-parse --show-ref-format") printf '%s\n' files ;;
+  "rev-parse --git-path") exit 1 ;;
+  "config --get") exit 1 ;;
+  *) exec /usr/bin/git "$@" ;;
+esac
+SH
+	(
+		cd "$repo"
+		env PATH="$fakebin:$PATH" "$bin" doctor >"$TEST_DIR/doctor"
+		grep -Eq '^Legacy bridge: +unknown$' "$TEST_DIR/doctor"
+	)
+}
+
+test_doctor_handles_a_malformed_version_from_the_compatibility_probe() {
+	create_repo
+	create_fake_git <<'SH'
+#!/bin/sh
+if test "$1 $2" = "rev-parse --git-dir"; then
+	printf '%s\n' .git
+	exit 0
+fi
+if test "$1" = --version; then
+	if test -e "$DOCTOR_VERSION_PROBED"; then
+		printf '%s\n' 'malformed version'
+	else
+		touch "$DOCTOR_VERSION_PROBED"
+		printf '%s\n' 'git version 2.54.0'
+	fi
+	exit 0
+fi
+exec /usr/bin/git "$@"
+SH
+
+	(
+		cd "$repo"
+		env PATH="$fakebin:$PATH" DOCTOR_VERSION_PROBED="$TEST_DIR/version-probed" \
+			"$bin" doctor >"$TEST_DIR/doctor"
+		grep -Eq '^Config-based hooks: +not supported$' "$TEST_DIR/doctor"
+	)
+}
+
+test_doctor_reports_an_installed_legacy_bridge() {
+	create_repo
+	(
+		cd "$repo"
+		install_legacy_bridge
+		with_legacy_git "$bin" doctor >"$TEST_DIR/doctor"
+		grep -Eq '^Bridge installed: +yes \(legacy\)$' "$TEST_DIR/doctor"
+		grep -Eq '^Legacy bridge: +yes$' "$TEST_DIR/doctor"
 	)
 }
 
@@ -188,6 +270,23 @@ test_list_handles_empty_configuration_and_hides_bridge() {
 		cd "$repo"
 		install_config_bridge
 		"$bin" list >"$TEST_DIR/list"
+		assert_file_equals "NAME                 EVENT              COMMAND" "$TEST_DIR/list"
+	)
+}
+
+test_list_ignores_malformed_final_config_line() {
+	create_repo
+	create_fake_git <<'SH'
+#!/bin/sh
+if test "$1 $2 $3" = "config --local --get-regexp"; then
+		printf '%s' 'hook..event branch-created'
+		exit 0
+fi
+exec /usr/bin/git "$@"
+SH
+	(
+		cd "$repo"
+		env PATH="$fakebin:$PATH" "$bin" list >"$TEST_DIR/list"
 		assert_file_equals "NAME                 EVENT              COMMAND" "$TEST_DIR/list"
 	)
 }
@@ -309,12 +408,17 @@ register_cli_tests() {
 	test_expect_success "requires a repository for doctor" test_doctor_requires_a_repository
 	test_expect_success "reports version-specific doctor compatibility" test_doctor_reports_version_specific_compatibility
 	test_expect_success "rejects an unreadable Git version in doctor" test_doctor_rejects_an_unreadable_git_version
+	test_expect_success "reports an unknown legacy bridge path" test_doctor_reports_unknown_legacy_bridge_path
+	test_expect_success "handles an unavailable ref backend" test_doctor_handles_an_unavailable_ref_backend
+	test_expect_success "handles a malformed compatibility-probe version" test_doctor_handles_a_malformed_version_from_the_compatibility_probe
+	test_expect_success "reports an installed legacy bridge" test_doctor_reports_an_installed_legacy_bridge
 	test_expect_success "adds config-based hook" test_add_writes_config_based_hook
 	test_expect_success "adds config-based hook with explicit scope" test_add_accepts_scope
 	test_expect_success "quotes added hook command" test_add_quotes_command_arguments
 	test_expect_success "roundtrips empty, quoted and literal shell arguments" test_add_command_roundtrips_special_arguments
 	test_expect_success "lists, shows and removes configured hooks" test_list_show_and_remove_configured_hooks
 	test_expect_success "lists an empty configuration without the bridge" test_list_handles_empty_configuration_and_hides_bridge
+	test_expect_success "ignores a malformed final config line" test_list_ignores_malformed_final_config_line
 	test_expect_success "removes partial hook configuration" test_remove_cleans_partial_hook_configuration
 	test_expect_success "manages hooks in global configuration" test_hook_configuration_commands_support_global_scope
 	test_expect_success "protects the bridge and requires a repository" test_hook_configuration_commands_protect_bridge_and_require_repository

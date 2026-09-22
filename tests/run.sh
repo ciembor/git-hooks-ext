@@ -1,6 +1,11 @@
 #!/bin/sh
 set -eu
 
+# Git exports repository-specific variables to hooks. The integration suite
+# creates independent repositories, so they must not inherit the index or
+# common-dir of the repository that launched the test runner.
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE
+
 test_root=$(CDPATH= cd "$(dirname "$0")" && pwd)
 project_root=$(CDPATH= cd "$test_root/.." && pwd)
 runner="$test_root/run.sh"

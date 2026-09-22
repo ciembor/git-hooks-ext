@@ -12,6 +12,19 @@ make lint
 make coverage
 ```
 
+## Pre-commit checks
+
+Activate the repository-provided hook once in a clone:
+
+```sh
+make install-dev-hooks
+```
+
+Every commit then runs, in order: `make lint-fix`, `make coverage` (which
+requires 100% functions, lines and regions), and `make test`. If clang-tidy
+changes a tracked file, the hook stops before the quality gates so the fixes
+can be reviewed and staged; run `git add ...` and commit again.
+
 `make coverage-html` writes an HTML report to `coverage/html/index.html`.
 
 ## Source Layout
@@ -95,6 +108,9 @@ in `PATH` and the standard Homebrew LLVM locations. For another installation:
 ```sh
 make lint CLANG_TIDY=/path/to/clang-tidy
 ```
+
+`make lint-fix` uses the same checks with clang-tidy's `-fix` option. It is
+used by the pre-commit hook and is also available for an explicit local fix.
 
 ## Mutation Testing
 

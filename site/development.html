@@ -27,6 +27,7 @@
         <p>Development</p>
         <nav>
           <a href="#build">Build</a>
+          <a href="#pre-commit">Pre-commit checks</a>
           <a href="#source-layout">Source layout</a>
           <a href="#tests">Tests</a>
           <a href="#debugging">Debugging</a>
@@ -55,6 +56,13 @@ make
 make test</code></pre>
           <p>The binary is written to <code>./git-hooks-ext</code>. Install it under <code>/usr/local/bin</code> with:</p>
           <pre><code>sudo make install</code></pre>
+        </section>
+
+        <section id="pre-commit">
+          <h2>Pre-commit checks</h2>
+          <p>Activate the repository-provided hook once in a clone:</p>
+          <pre><code>make install-dev-hooks</code></pre>
+          <p>Before every commit it runs clang-tidy with automatic fixes, then requires 100% coverage, then runs the full test suite. If clang-tidy changes a tracked file, the hook stops so the changes can be reviewed and staged before retrying the commit.</p>
         </section>
 
         <section id="source-layout">
@@ -110,6 +118,7 @@ make lint
 
 # Custom installation
 make lint CLANG_TIDY=/path/to/clang-tidy</code></pre>
+          <p><code>make lint-fix</code> uses the same checks with automatic fixes and is the first pre-commit step.</p>
         </section>
 
         <section id="coverage">

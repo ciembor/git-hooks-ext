@@ -35,7 +35,7 @@ TEST_REF_UPDATE_OBJ := $(TEST_BUILD_DIR)/ref_update.o
 TEST_REF_UPDATE_UNIT := $(TEST_BUILD_DIR)/ref_update_unit
 TEST_RUNTIME_UNIT := $(TEST_BUILD_DIR)/runtime_unit
 
-.PHONY: all clean coverage coverage-html install lint mutation test \
+.PHONY: all clean coverage coverage-html install install-dev-hooks lint lint-fix mutation test \
 	package-source package-brew package-deb test-package-brew test-package-apt \
 	test-release-brew test-release-apt test-package-fedora test-package-arch test-package-alpine
 
@@ -79,6 +79,9 @@ install: $(BIN)
 	install -m 755 "$(BIN)" "$(DESTDIR)$(PREFIX)/bin/git-hooks-ext"
 	ln -sf git-hooks-ext "$(DESTDIR)$(PREFIX)/bin/ghe"
 
+install-dev-hooks:
+	git config core.hooksPath .githooks
+
 $(TEST_REF_UPDATE_OBJ): src/ref_update.c src/ref_update.h src/coverage.h
 	mkdir -p "$(TEST_BUILD_DIR)"
 	$(CC) $(CPPFLAGS) $(CFLAGS) -Dfree=ghe_test_free -c src/ref_update.c -o "$@"
@@ -100,6 +103,14 @@ lint:
 	}
 	"$(CLANG_TIDY)" $(LINT_SRC) -- $(CPPFLAGS) $(CFLAGS)
 	"$(CLANG_TIDY)" $(LINT_SRC) -- $(CPPFLAGS) $(CFLAGS) -DGIT_HOOKS_EXT_COVERAGE_TEST
+
+lint-fix:
+	@command -v "$(CLANG_TIDY)" >/dev/null 2>&1 || { \
+		printf '%s\n' 'clang-tidy not found. Install LLVM or set CLANG_TIDY=/path/to/clang-tidy.' >&2; \
+		exit 1; \
+	}
+	"$(CLANG_TIDY)" -fix $(LINT_SRC) -- $(CPPFLAGS) $(CFLAGS)
+	"$(CLANG_TIDY)" -fix $(LINT_SRC) -- $(CPPFLAGS) $(CFLAGS) -DGIT_HOOKS_EXT_COVERAGE_TEST
 
 mutation:
 	@command -v "$(MUTATION_CC)" >/dev/null 2>&1 && \

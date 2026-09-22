@@ -21,6 +21,13 @@ test_coverage_forced_failures() {
 		with_legacy_git env PATH="$TEST_DIR/path-bin:$PATH" git-hooks-ext install
 
 		assert_fails env GHE_TEST_XMALLOC_FAIL=1 "$bin" add branch-created x ./x
+		"$bin" add branch-created managed ./managed
+		assert_fails env GHE_TEST_HOOK_KEY_MALLOC_FAIL=1 "$bin" show managed
+		assert_fails env GHE_TEST_HOOK_KEY_MALLOC_FAIL=1 "$bin" list
+		assert_fails env GHE_TEST_HOOK_COMMAND_KEY_MALLOC_FAIL=1 "$bin" remove managed
+		assert_fails env GHE_TEST_HOOK_MANAGE_COMMAND_MALLOC_FAIL=1 "$bin" show managed
+		assert_fails env GHE_TEST_HOOK_MANAGE_STRNDUP_FAIL=1 "$bin" list
+		assert_fails env GHE_TEST_SHELL_QUOTE_MALLOC_FAIL=1 "$bin" show managed
 		assert_fails env GHE_TEST_JOIN_COMMAND_MALLOC_FAIL=1 "$bin" add branch-created x ./x
 		assert_fails with_legacy_git env GHE_TEST_JOIN_HOOK_PATH_MALLOC_FAIL=1 "$bin" install
 

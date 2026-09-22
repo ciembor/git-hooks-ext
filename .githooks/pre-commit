@@ -1,0 +1,18 @@
+#!/bin/sh
+
+set -eu
+
+repository_root=$(git rev-parse --show-toplevel)
+cd "$repository_root"
+
+before_lint=$(git diff --no-ext-diff | git hash-object --stdin)
+make lint-fix
+after_lint=$(git diff --no-ext-diff | git hash-object --stdin)
+
+if test "$before_lint" != "$after_lint"; then
+	printf '%s\n' 'clang-tidy applied fixes. Review and stage them, then commit again.' >&2
+	exit 1
+fi
+
+make coverage
+make test
