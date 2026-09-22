@@ -41,7 +41,7 @@ jobs:
             80.*|9[0-4].*) color=yellow ;;
             *) color=red ;;
           esac
-          printf '{"schemaVersion":1,"label":"coverage","message":"%s","color":"%s"}\n' \
+          printf '{"schemaVersion":1,"label":"coverage","message":"%s","color":"%s","cacheSeconds":60}\n' \
             "$percentage" "$color" > coverage-badge.json
           if git diff --quiet -- coverage-badge.json; then
             exit 0
