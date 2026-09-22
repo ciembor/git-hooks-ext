@@ -265,7 +265,14 @@ config:
 git-hooks-ext install
 # or: ghe install
 git-hooks-ext add branch-created create-branch-env ./scripts/create-branch-env
+git-hooks-ext list
+git-hooks-ext show create-branch-env
+git-hooks-ext remove create-branch-env
 ```
+
+`list` prints the configured hook name, event and command. `show` and `remove`
+operate on one named event hook. These commands accept the same optional scope
+as `add`; they use the local repository configuration by default.
 
 ## Hook Arguments
 

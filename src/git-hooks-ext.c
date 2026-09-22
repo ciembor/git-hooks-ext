@@ -8,6 +8,7 @@
 #include "hook_config.h"
 #include "doctor.h"
 #include "hook_install.h"
+#include "hook_manage.h"
 #include "git_runner.h"
 #include "ref_events.h"
 #include "ref_update.h"
@@ -21,6 +22,9 @@ static void usage(FILE *stream)
 		"       git-hooks-ext uninstall [--local|--global|--system]\n"
 		"       git-hooks-ext doctor\n"
 		"       git-hooks-ext add [--local|--global|--system] <event> <name> <command> [args...]\n"
+		"       git-hooks-ext list [--local|--global|--system]\n"
+		"       git-hooks-ext show [--local|--global|--system] <name>\n"
+		"       git-hooks-ext remove [--local|--global|--system] <name>\n"
 		"       git-hooks-ext worktree <command> [args...]\n"
 		"       git-hooks-ext events\n"
 		"       git-hooks-ext --version\n");
@@ -231,6 +235,36 @@ static int cmd_add(int argc, char **argv)
 	return configure_event_hook(scope, event, name, argc - 2, argv + 2);
 }
 
+static int cmd_hook_manage(int argc, char **argv,
+			   int (*operation)(const char *, const char *))
+{
+	const char *scope = "--local";
+
+	if (argc > 0 && is_scope(argv[0])) {
+		scope = argv[0];
+		argc--;
+		argv++;
+	}
+	if (argc != 1) {
+		usage(stderr);
+		return 2;
+	}
+	return operation(scope, argv[0]);
+}
+
+static int cmd_list(int argc, char **argv)
+{
+	const char *scope = "--local";
+
+	if (argc == 1 && is_scope(argv[0]))
+		scope = argv[0];
+	else if (argc != 0) {
+		usage(stderr);
+		return 2;
+	}
+	return list_event_hooks(scope);
+}
+
 int main(int argc, char **argv)
 {
 	if (argc == 2 && strcmp(argv[1], "--version") == 0) {
@@ -257,6 +291,12 @@ int main(int argc, char **argv)
 	}
 	if (strcmp(argv[1], "add") == 0)
 		return cmd_add(argc - 2, argv + 2);
+	if (strcmp(argv[1], "list") == 0)
+		return cmd_list(argc - 2, argv + 2);
+	if (strcmp(argv[1], "show") == 0)
+		return cmd_hook_manage(argc - 2, argv + 2, show_event_hook);
+	if (strcmp(argv[1], "remove") == 0)
+		return cmd_hook_manage(argc - 2, argv + 2, remove_event_hook);
 	if (strcmp(argv[1], "events") == 0)
 		return cmd_events(argc - 2, argv + 2);
 	if (strcmp(argv[1], "worktree") == 0)

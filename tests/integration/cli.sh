@@ -101,6 +101,40 @@ with spaces" "$TEST_DIR/out"
 	)
 }
 
+test_list_show_and_remove_configured_hooks() {
+	create_repo
+
+	(
+		cd "$repo"
+		"$bin" add branch-created notify-branch ./notify
+		"$bin" add branch-deleted cleanup ./cleanup --stale
+		"$bin" list >"$TEST_DIR/list"
+		grep -Eq '^NAME +EVENT +COMMAND$' "$TEST_DIR/list"
+		grep -Eq '^notify-branch +branch-created +[[:print:]]*notify' "$TEST_DIR/list"
+		grep -Eq '^cleanup +branch-deleted +[[:print:]]*cleanup.*--stale' "$TEST_DIR/list"
+		"$bin" show notify-branch >"$TEST_DIR/show"
+		grep -Eq '^notify-branch +branch-created +[[:print:]]*notify' "$TEST_DIR/show"
+		"$bin" remove notify-branch
+		! git config --local --get hook.notify-branch.event
+		! git config --local --get hook.notify-branch.command
+		"$bin" list >"$TEST_DIR/after-remove"
+		! grep -F notify-branch "$TEST_DIR/after-remove"
+	)
+}
+
+test_hook_configuration_commands_reject_invalid_arguments() {
+	create_repo
+
+	(
+		cd "$repo"
+		assert_exit_code 2 "$bin" list extra >"$TEST_DIR/out0" 2>"$TEST_DIR/err0"
+		assert_exit_code 2 "$bin" show >"$TEST_DIR/out1" 2>"$TEST_DIR/err1"
+		assert_exit_code 2 "$bin" remove one two >"$TEST_DIR/out2" 2>"$TEST_DIR/err2"
+		assert_fails "$bin" show missing >"$TEST_DIR/out3" 2>"$TEST_DIR/err3"
+		assert_fails "$bin" remove missing >"$TEST_DIR/out4" 2>"$TEST_DIR/err4"
+	)
+}
+
 test_add_rejects_bad_args() {
 	create_repo
 
@@ -137,6 +171,8 @@ register_cli_tests() {
 	test_expect_success "adds config-based hook with explicit scope" test_add_accepts_scope
 	test_expect_success "quotes added hook command" test_add_quotes_command_arguments
 	test_expect_success "roundtrips empty, quoted and literal shell arguments" test_add_command_roundtrips_special_arguments
+	test_expect_success "lists, shows and removes configured hooks" test_list_show_and_remove_configured_hooks
+	test_expect_success "rejects invalid hook configuration commands" test_hook_configuration_commands_reject_invalid_arguments
 	test_expect_success "rejects bad add args" test_add_rejects_bad_args
 	test_expect_success "rejects bad top-level args" test_main_rejects_bad_args
 }
