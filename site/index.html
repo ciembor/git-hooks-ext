@@ -53,7 +53,8 @@
 
         <section id="synopsis">
           <h2>Synopsis</h2>
-          <pre><code>git-hooks-ext install [--local|--global|--system|--legacy]
+          <pre><code>git-hooks-ext install [--local|--global|--system]
+git-hooks-ext uninstall [--local|--global|--system]
 git-hooks-ext add [--local|--global|--system] &lt;event&gt; &lt;name&gt; &lt;command&gt; [args...]
 git-hooks-ext events
 git-hooks-ext worktree &lt;command&gt; [args...]
@@ -220,11 +221,8 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
         <section id="quick-start">
           <h2>Quick start</h2>
           <h3>1. Enable the hook bridge</h3>
-          <pre><code># Git 2.54+
-git-hooks-ext install
-
-# Git 2.53 and older
-git-hooks-ext install --legacy</code></pre>
+          <pre><code>git-hooks-ext install</code></pre>
+          <p>The command automatically uses config-based hooks with Git 2.54+ or installs the legacy bridge on older Git versions. After upgrading Git, remove the legacy <code>reference-transaction</code> hook and run <code>git-hooks-ext install</code> again.</p>
 
           <h3>2. Add an event hook</h3>
           <pre><code>cat &gt; .git/hooks/branch-created &lt;&lt;'SH'

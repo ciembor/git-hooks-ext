@@ -97,7 +97,7 @@ test_sha256_git_transactions_run_hooks() {
 		git -c user.name=Test -c user.email=test@example.com commit --allow-empty -qm initial
 		oid=$(git rev-parse HEAD)
 		zero256=$(printf '%064d' 0)
-		"$bin" install --legacy
+		install_legacy_bridge
 		cat > .git/hooks/branch-created <<'SH'
 #!/bin/sh
 printf 'created %s %s %s\n' "$1" "$3" "$4" >> events.out

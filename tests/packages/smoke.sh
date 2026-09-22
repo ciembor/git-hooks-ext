@@ -18,7 +18,7 @@ trap 'rm -rf "$work"' EXIT
 git init -q "$work/repo"
 cd "$work/repo"
 git -c user.name='Package Test' -c user.email=test@example.com commit --allow-empty -qm initial
-git-hooks-ext install --legacy
+git-hooks-ext install
 test -x .git/hooks/reference-transaction
 cat >.git/hooks/branch-created <<'SH'
 #!/bin/sh

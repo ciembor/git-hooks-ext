@@ -5,6 +5,8 @@
 #include <stddef.h>
 
 int run_git(char **argv);
+/* Returns 1 when Git supports config-based hooks, 0 for legacy Git, -1 on error. */
+int git_config_hooks_supported(void);
 /* Caller owns returned paths; NULL hook_name selects the directory. */
 char *git_hook_path(const char *hook_name);
 char *git_hook_path_join(const char *hooks_dir, const char *hook_name);

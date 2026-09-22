@@ -114,7 +114,7 @@ prepare_repo() {
 	"$helper_bin" --version >/dev/null
 	(
 		cd "$repo"
-		"$helper_bin" install --legacy
+		"$helper_bin" install
 		cat >.git/hooks/record-event <<'SH'
 #!/bin/sh
 printf '%s' "${0##*/}" >>"$GHE_E2E_LOG"

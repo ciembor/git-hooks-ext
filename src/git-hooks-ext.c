@@ -7,6 +7,7 @@
 
 #include "hook_config.h"
 #include "hook_install.h"
+#include "git_runner.h"
 #include "ref_events.h"
 #include "ref_update.h"
 #include "worktree.h"
@@ -15,7 +16,8 @@ static void usage(FILE *stream)
 {
 	fprintf(stream,
 		"usage: git-hooks-ext reference-transaction <state> [--dry-run]\n"
-		"       git-hooks-ext install [--local|--global|--system|--legacy]\n"
+		"       git-hooks-ext install [--local|--global|--system]\n"
+		"       git-hooks-ext uninstall [--local|--global|--system]\n"
 		"       git-hooks-ext add [--local|--global|--system] <event> <name> <command> [args...]\n"
 			"       git-hooks-ext worktree <command> [args...]\n"
 			"       git-hooks-ext events\n"
@@ -148,21 +150,56 @@ static int cmd_reference_transaction(int argc, char **argv)
 static int cmd_install(int argc, char **argv, const char *argv0)
 {
 	const char *scope = "--local";
+	int config_hooks;
+	int status;
 
 	if (argc > 1) {
 		usage(stderr);
 		return 2;
 	}
 	if (argc == 1) {
-		if (strcmp(argv[0], "--legacy") == 0)
-			return install_legacy_bridge(argv0);
 		if (!is_scope(argv[0])) {
 			usage(stderr);
 			return 2;
 		}
 		scope = argv[0];
 	}
+	config_hooks = git_config_hooks_supported();
+	if (config_hooks < 0) {
+		fprintf(stderr, "git-hooks-ext: failed to determine the Git version\n");
+		return 1;
+	}
+	if (!config_hooks) {
+		if (strcmp(scope, "--global") == 0 || strcmp(scope, "--system") == 0) {
+			fprintf(stderr,
+				"git-hooks-ext: %s is unavailable with legacy Git hooks\n",
+				scope);
+			return 2;
+		}
+		status = install_legacy_bridge(argv0);
+		if (!status)
+			fprintf(stderr,
+				"git-hooks-ext: legacy hook bridge installed. After upgrading to Git 2.54 or later, remove this reference-transaction hook and run 'git-hooks-ext install' again.\n");
+		return status;
+	}
 	return configure_hook_bridge(scope);
+}
+
+static int cmd_uninstall(int argc, char **argv)
+{
+	const char *scope = "--local";
+	int status;
+
+	if (argc > 1 || (argc == 1 && !is_scope(argv[0]))) {
+		usage(stderr);
+		return 2;
+	}
+	if (argc == 1)
+		scope = argv[0];
+	status = remove_hook_bridge(scope);
+	if (!status && strcmp(scope, "--local") == 0)
+		status = remove_legacy_bridge();
+	return status;
 }
 
 static int cmd_add(int argc, char **argv)
@@ -207,6 +244,8 @@ int main(int argc, char **argv)
 		return cmd_reference_transaction(argc - 2, argv + 2);
 	if (strcmp(argv[1], "install") == 0)
 		return cmd_install(argc - 2, argv + 2, argv[0]);
+	if (strcmp(argv[1], "uninstall") == 0)
+		return cmd_uninstall(argc - 2, argv + 2);
 	if (strcmp(argv[1], "add") == 0)
 		return cmd_add(argc - 2, argv + 2);
 	if (strcmp(argv[1], "events") == 0)

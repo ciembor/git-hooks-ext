@@ -3,7 +3,7 @@ test_rename_failure_is_returned() {
 
 	(
 		cd "$repo"
-		"$bin" install --legacy
+		install_legacy_bridge
 		cat > .git/hooks/branch-renamed <<'SH'
 #!/bin/sh
 exit 7
@@ -21,7 +21,7 @@ test_legacy_hook_file_runs() {
 
 	(
 		cd "$repo"
-		"$bin" install --legacy
+		install_legacy_bridge
 		test -x .git/hooks/reference-transaction
 
 		cat > .git/hooks/branch-created <<'SH'
@@ -43,7 +43,7 @@ test_legacy_respects_core_hooks_path() {
 		cd "$repo"
 		for hooks_dir in custom-hooks "$TEST_DIR/custom hooks"; do
 			git config core.hooksPath "$hooks_dir"
-			"$bin" install --legacy
+			install_legacy_bridge
 			test -x "$hooks_dir/reference-transaction"
 
 			cat > "$hooks_dir/branch-created" <<'SH'
@@ -65,7 +65,7 @@ test_legacy_hook_failure_is_returned() {
 
 	(
 		cd "$repo"
-		"$bin" install --legacy
+		install_legacy_bridge
 		cat > .git/hooks/branch-created <<'SH'
 #!/bin/sh
 exit 7

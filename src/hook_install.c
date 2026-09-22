@@ -13,6 +13,8 @@
 #include "git_runner.h"
 #include "shell_command.h"
 
+#define LEGACY_BRIDGE_MARKER "# git-hooks-ext legacy bridge\n"
+
 static char *installed_program(const char *argv0)
 {
 	char resolved[PATH_MAX];
@@ -56,7 +58,7 @@ static int write_bridge(const char *hook_path, const char *argv0)
 	free(program);
 
 	if (coverage_fail("GHE_TEST_FPUTS_FAIL") ||
-	    fputs("#!/bin/sh\nexec ", hook) == EOF ||
+	    fputs("#!/bin/sh\n" LEGACY_BRIDGE_MARKER "exec ", hook) == EOF ||
 	    fputs(quoted_program, hook) == EOF ||
 	    fputs(" reference-transaction \"$@\"\n", hook) == EOF) {
 		perror(hook_path);
@@ -100,6 +102,42 @@ int install_legacy_bridge(const char *argv0)
 		return 1;
 	}
 	status = write_bridge(hook_path, argv0);
+	free(hook_path);
+	return status;
+}
+
+int remove_legacy_bridge(void)
+{
+	char *hook_path;
+	FILE *hook;
+	char line[sizeof(LEGACY_BRIDGE_MARKER)];
+	int status = 0;
+
+	hook_path = git_hook_path("reference-transaction");
+	if (!hook_path) {
+		fprintf(stderr, "git-hooks-ext: failed to resolve hooks path\n");
+		return 1;
+	}
+	hook = fopen(hook_path, "r");
+	if (!hook) {
+		if (access(hook_path, F_OK) == 0) {
+			perror(hook_path);
+			status = 1;
+		}
+		free(hook_path);
+		return status;
+	}
+	if (!fgets(line, sizeof(line), hook) ||
+	    !fgets(line, sizeof(line), hook) ||
+	    strcmp(line, LEGACY_BRIDGE_MARKER) != 0) {
+		fclose(hook);
+		free(hook_path);
+		return 0;
+	}
+	if (fclose(hook) != 0 || unlink(hook_path) != 0) {
+		perror(hook_path);
+		status = 1;
+	}
 	free(hook_path);
 	return status;
 }

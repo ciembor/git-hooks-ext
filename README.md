@@ -125,11 +125,7 @@ shows which commands produced each event in end-to-end tests.
 Enable the extension in a Git repository and add a hook:
 
 ```sh
-# Git 2.54+ (config-based hooks)
 git-hooks-ext install
-
-# Git 2.53 and older (use this instead)
-# git-hooks-ext install --legacy
 
 cat > .git/hooks/branch-created <<'SH'
 #!/bin/sh
@@ -198,16 +194,26 @@ Native packages are recommended when installing hooks in a repository. The
 container image is useful for inspecting the CLI and processing input from a
 mounted or piped-in repository environment.
 
-After installing the package, enable it in each repository with the command
-matching your Git version:
+After installing the package, enable it in each repository:
 
 ```sh
-# Git 2.54+
 git-hooks-ext install
-
-# Git 2.53 and older
-git-hooks-ext install --legacy
 ```
+
+The command detects the installed Git version. With Git 2.54 or later it uses
+config-based hooks; with Git 2.53 or older it installs a legacy
+`reference-transaction` hook and prints migration instructions. After upgrading
+Git, remove that legacy bridge and run `git-hooks-ext install` again.
+
+Remove the bridge with:
+
+```sh
+git-hooks-ext uninstall
+```
+
+This removes the config-based bridge and a legacy bridge installed by a current
+version of `git-hooks-ext`, while leaving any other `reference-transaction`
+hook untouched.
 
 Fedora, Arch Linux and Alpine packages are also available. See
 [Distribution and Packaging](DEVELOPMENT.md#distribution-and-packaging) for

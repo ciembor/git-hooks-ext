@@ -4,25 +4,25 @@ test_coverage_forced_failures() {
 	create_repo
 	(
 		cd "$repo"
-		assert_fails env GHE_TEST_MKDIR_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_SHELL_QUOTE_MALLOC_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_INSTALLED_PROGRAM_STRDUP_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_FOPEN_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_FPUTS_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_FCLOSE_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_CHMOD_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_POPEN_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_READ_COMMAND_MALLOC_FAIL=1 "$bin" install --legacy
-		assert_fails env GHE_TEST_PCLOSE_COMMAND_FAIL=1 "$bin" install --legacy
-		env GHE_TEST_REALPATH_FAIL=1 "$bin" install --legacy
+		assert_fails with_legacy_git env GHE_TEST_MKDIR_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_SHELL_QUOTE_MALLOC_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_INSTALLED_PROGRAM_STRDUP_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_FOPEN_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_FPUTS_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_FCLOSE_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_CHMOD_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_POPEN_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_READ_COMMAND_MALLOC_FAIL=1 "$bin" install
+		assert_fails with_legacy_git env GHE_TEST_PCLOSE_COMMAND_FAIL=1 "$bin" install
+		with_legacy_git env GHE_TEST_REALPATH_FAIL=1 "$bin" install
 
 		mkdir -p "$TEST_DIR/path-bin"
 		ln -sf "$bin" "$TEST_DIR/path-bin/git-hooks-ext"
-		env PATH="$TEST_DIR/path-bin:$PATH" git-hooks-ext install --legacy
+		with_legacy_git env PATH="$TEST_DIR/path-bin:$PATH" git-hooks-ext install
 
 		assert_fails env GHE_TEST_XMALLOC_FAIL=1 "$bin" add branch-created x ./x
 		assert_fails env GHE_TEST_JOIN_COMMAND_MALLOC_FAIL=1 "$bin" add branch-created x ./x
-		assert_fails env GHE_TEST_JOIN_HOOK_PATH_MALLOC_FAIL=1 "$bin" install --legacy
+		assert_fails with_legacy_git env GHE_TEST_JOIN_HOOK_PATH_MALLOC_FAIL=1 "$bin" install
 
 		printf '%s\n' "$zero $one refs/heads/topic" |
 			assert_fails env GHE_TEST_REF_STRDUP_FAIL=1 "$bin" reference-transaction committed --dry-run
@@ -41,7 +41,7 @@ test_coverage_forced_failures() {
 				GHE_TEST_HOOK_RUN_CALLOC_FAIL=1 \
 				"$bin" reference-transaction committed
 
-		"$bin" install --legacy
+		install_legacy_bridge
 		cat > .git/hooks/branch-created <<'SH'
 #!/bin/sh
 exit 0
