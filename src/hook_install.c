@@ -112,6 +112,8 @@ int remove_legacy_bridge(void)
 	char *hook_path;
 	FILE *hook;
 	char line[sizeof(LEGACY_BRIDGE_MARKER)];
+	int close_failed;
+	int unlink_failed;
 	int status = 0;
 
 	hook_path = git_hook_path("reference-transaction");
@@ -139,15 +141,18 @@ int remove_legacy_bridge(void)
 		free(hook_path);
 		return 0;
 	}
-	if (fclose(hook) != 0 || coverage_fail("GHE_TEST_LEGACY_CLOSE_FAIL")) {
+	close_failed = coverage_fail("GHE_TEST_LEGACY_CLOSE_FAIL");
+	if (fclose(hook) != 0 || close_failed) {
 		perror(hook_path);
 		status = 1;
-	} else if (coverage_fail("GHE_TEST_LEGACY_UNLINK_FAIL") ||
-		   unlink(hook_path) != 0) {
-		if (coverage_fail("GHE_TEST_LEGACY_UNLINK_FAIL"))
+	} else {
+		unlink_failed = coverage_fail("GHE_TEST_LEGACY_UNLINK_FAIL");
+		if (unlink_failed || unlink(hook_path) != 0) {
+			if (unlink_failed)
 			errno = EPERM;
-		perror(hook_path);
-		status = 1;
+			perror(hook_path);
+			status = 1;
+		}
 	}
 	free(hook_path);
 	return status;
