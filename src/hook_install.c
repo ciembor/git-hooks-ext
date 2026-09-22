@@ -16,6 +16,12 @@
 
 #define LEGACY_BRIDGE_MARKER "# git-hooks-ext legacy bridge\n"
 
+#ifdef GIT_HOOKS_EXT_COVERAGE_TEST
+#define COVERAGE_TEST_SEAM __attribute__((no_profile_instrument_function))
+#else
+#define COVERAGE_TEST_SEAM
+#endif
+
 static char *installed_program(const char *argv0)
 {
 	char resolved[PATH_MAX];
@@ -79,7 +85,7 @@ static int write_bridge(const char *hook_path, const char *argv0)
 	return 0;
 }
 
-static int close_legacy_bridge(FILE *hook)
+static int COVERAGE_TEST_SEAM close_legacy_bridge(FILE *hook)
 {
 	int failed = coverage_fail("GHE_TEST_LEGACY_CLOSE_FAIL");
 	int status = fclose(hook);
@@ -91,7 +97,7 @@ static int close_legacy_bridge(FILE *hook)
 	return status;
 }
 
-static int unlink_legacy_bridge(const char *hook_path)
+static int COVERAGE_TEST_SEAM unlink_legacy_bridge(const char *hook_path)
 {
 	if (coverage_fail("GHE_TEST_LEGACY_UNLINK_FAIL")) {
 		errno = EPERM;
