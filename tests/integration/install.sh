@@ -91,6 +91,21 @@ test_uninstall_reports_legacy_bridge_removal_failures() {
 	)
 }
 
+test_uninstall_reports_an_unremovable_legacy_bridge() {
+	create_repo
+
+	(
+		cd "$repo"
+		install_legacy_bridge
+		chmod 0555 .git/hooks
+		assert_fails with_legacy_git "$bin" uninstall
+		chmod 0755 .git/hooks
+		test -e .git/hooks/reference-transaction
+		with_legacy_git "$bin" uninstall
+		test ! -e .git/hooks/reference-transaction
+	)
+}
+
 test_install_rejects_bad_args() {
 	create_repo
 
@@ -212,6 +227,7 @@ register_install_tests() {
 	test_expect_success "uninstalls its legacy bridge" test_uninstall_removes_owned_legacy_bridge
 	test_expect_success "preserves an unrecognized legacy hook" test_uninstall_preserves_unrecognized_legacy_hook
 	test_expect_success "reports legacy bridge removal failures" test_uninstall_reports_legacy_bridge_removal_failures
+	test_expect_success "reports an unremovable legacy bridge" test_uninstall_reports_an_unremovable_legacy_bridge
 	test_expect_success "rejects bad install args" test_install_rejects_bad_args
 	test_expect_success "returns first install config failure" test_install_returns_first_config_failure
 	test_expect_success "creates a missing hooks directory" test_legacy_creates_hooks_directory
