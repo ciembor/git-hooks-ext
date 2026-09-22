@@ -94,20 +94,20 @@ separate from the lifecycle events below.
 
 Git has no hook for observing
 worktree lifecycle operations, so `worktree-*` events are available only when
-the command is run through the `git-hooks-ext worktree` wrapper.
+the command is run through the `ghe worktree` wrapper.
 
 <table width="100%">
   <thead>
     <tr><th>Wrapper command</th><th>Event</th></tr>
   </thead>
   <tbody>
-    <tr><td><code>git-hooks-ext worktree add</code></td><td><code>worktree-created</code></td></tr>
-    <tr><td><code>git-hooks-ext worktree remove</code></td><td><code>worktree-removed</code></td></tr>
-    <tr><td><code>git-hooks-ext worktree move</code></td><td><code>worktree-moved</code></td></tr>
-    <tr><td><code>git-hooks-ext worktree lock</code></td><td><code>worktree-locked</code></td></tr>
-    <tr><td><code>git-hooks-ext worktree unlock</code></td><td><code>worktree-unlocked</code></td></tr>
-    <tr><td><code>git-hooks-ext worktree prune</code></td><td><code>worktree-pruned</code></td></tr>
-    <tr><td><code>git-hooks-ext worktree repair</code></td><td><code>worktree-repaired</code></td></tr>
+    <tr><td><code>ghe worktree add</code></td><td><code>worktree-created</code></td></tr>
+    <tr><td><code>ghe worktree remove</code></td><td><code>worktree-removed</code></td></tr>
+    <tr><td><code>ghe worktree move</code></td><td><code>worktree-moved</code></td></tr>
+    <tr><td><code>ghe worktree lock</code></td><td><code>worktree-locked</code></td></tr>
+    <tr><td><code>ghe worktree unlock</code></td><td><code>worktree-unlocked</code></td></tr>
+    <tr><td><code>ghe worktree prune</code></td><td><code>worktree-pruned</code></td></tr>
+    <tr><td><code>ghe worktree repair</code></td><td><code>worktree-repaired</code></td></tr>
   </tbody>
 </table>
 
@@ -126,6 +126,7 @@ Enable the extension in a Git repository and add a hook:
 
 ```sh
 git-hooks-ext install
+# or: ghe install
 
 cat > .git/hooks/branch-created <<'SH'
 #!/bin/sh
@@ -135,6 +136,9 @@ chmod +x .git/hooks/branch-created
 ```
 
 `ghe` is a shorter, equivalent command installed alongside `git-hooks-ext`.
+
+Run `git-hooks-ext doctor` inside a repository to show the detected Git and
+reference backend, installed bridge, and compatibility status for every event.
 
 Now create a branch:
 
@@ -200,12 +204,13 @@ After installing the package, enable it in each repository:
 
 ```sh
 git-hooks-ext install
+# or: ghe install
 ```
 
 The command detects the installed Git version. With Git 2.54 or later it uses
 config-based hooks; with Git 2.53 or older it installs a legacy
 `reference-transaction` hook and prints migration instructions. After upgrading
-Git, remove that legacy bridge and run `git-hooks-ext install` again.
+Git, remove that legacy bridge and run `git-hooks-ext install` again (or `ghe install`).
 
 Remove the bridge with:
 
@@ -227,16 +232,16 @@ Git has no native hooks for removing, moving, locking, pruning or repairing a
 worktree. Run worktree commands through `git-hooks-ext` to add those events:
 
 ```sh
-git-hooks-ext worktree add -b feature ../feature
-git-hooks-ext worktree lock --reason "offline disk" ../feature
-git-hooks-ext worktree move ../feature ../feature-renamed
-git-hooks-ext worktree remove ../feature-renamed
+ghe worktree add -b feature ../feature
+ghe worktree lock --reason "offline disk" ../feature
+ghe worktree move ../feature ../feature-renamed
+ghe worktree remove ../feature-renamed
 ```
 
 All arguments are forwarded to `git worktree`. The command snapshots
 `git worktree list --porcelain -z` before and after a successful mutation and
 emits events only for observed lifecycle changes. Read-only commands are also
-forwarded, so `git-hooks-ext worktree list` behaves like `git worktree list`.
+forwarded, so `ghe worktree list` behaves like `git worktree list`.
 Commands run directly as `git worktree ...` bypass this frontend and do not
 emit lifecycle events.
 
@@ -248,7 +253,7 @@ cat >.git/hooks/worktree-created <<'SH'
 printf 'worktree %s created at %s\n' "$3" "$1"
 SH
 chmod +x .git/hooks/worktree-created
-git-hooks-ext worktree add -b feature ../feature
+ghe worktree add -b feature ../feature
 ```
 
 ## Advanced Configuration
@@ -258,6 +263,7 @@ config:
 
 ```sh
 git-hooks-ext install
+# or: ghe install
 git-hooks-ext add branch-created create-branch-env ./scripts/create-branch-env
 ```
 
@@ -360,7 +366,7 @@ provide the required `reference-transaction` hook.
 This table lists each tested command, its expected event and the Git versions
 that emit it. The direct `update-ref` rows show which events remain reachable
 when a higher-level command omits usable transaction data. Rows for
-`git-hooks-ext worktree` use the extension's frontend; plain `git worktree`
+`ghe worktree` uses the extension's frontend; plain `git worktree`
 does not run these hooks.
 
 <table width="100%">
@@ -419,13 +425,13 @@ does not run these hooks.
     <tr><td><code>remote-head-created</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>root-ref-*</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>head-detached</code></td><td><code>git checkout --detach</code></td><td>❌</td></tr>
-    <tr><td><code>worktree-created</code></td><td><code>git-hooks-ext worktree add</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-removed</code></td><td><code>git-hooks-ext worktree remove</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-moved</code></td><td><code>git-hooks-ext worktree move</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-locked</code></td><td><code>git-hooks-ext worktree lock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-unlocked</code></td><td><code>git-hooks-ext worktree unlock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-pruned</code></td><td><code>git-hooks-ext worktree prune</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-repaired</code></td><td><code>git-hooks-ext worktree repair</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-created</code></td><td><code>ghe worktree add</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-removed</code></td><td><code>ghe worktree remove</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-moved</code></td><td><code>ghe worktree move</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-locked</code></td><td><code>ghe worktree lock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-unlocked</code></td><td><code>ghe worktree unlock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-pruned</code></td><td><code>ghe worktree prune</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-repaired</code></td><td><code>ghe worktree repair</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
   </tbody>
 </table>
 

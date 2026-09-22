@@ -34,7 +34,7 @@ expected `usable_update` column, runs the real end-to-end suite and uploads
 both TSV results. It tests 40 ref events (branch, remote branch, remote HEAD,
 tag, stash, note, replace, prefetch, bisect, rewritten, per-worktree and
 fallback refs) using actual `git update-ref` transactions, seven worktree
-events using the `git-hooks-ext worktree` frontend, and 18 higher-level Git command
+events using the `ghe worktree` frontend, and 18 higher-level Git command
 scenarios. On Git 2.54+, it additionally checks symbolic `HEAD`, symbolic remote
 `HEAD`, custom ref names outside `refs/*`, worktree aliases and root-ref
 transactions on both ref backends. The end-to-end suite
@@ -52,7 +52,7 @@ provide the required `reference-transaction` hook.
 This table lists each tested command, its expected event and the Git versions
 that emit it. The direct `update-ref` rows show which events remain reachable
 when a higher-level command omits usable transaction data. Rows for
-`git-hooks-ext worktree` use the extension's frontend; plain `git worktree`
+`ghe worktree` uses the extension's frontend; plain `git worktree`
 does not run these hooks.
 
 <table width="100%">
@@ -111,13 +111,13 @@ does not run these hooks.
     <tr><td><code>remote-head-created</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>root-ref-*</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>head-detached</code></td><td><code>git checkout --detach</code></td><td>❌</td></tr>
-    <tr><td><code>worktree-created</code></td><td><code>git-hooks-ext worktree add</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-removed</code></td><td><code>git-hooks-ext worktree remove</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-moved</code></td><td><code>git-hooks-ext worktree move</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-locked</code></td><td><code>git-hooks-ext worktree lock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-unlocked</code></td><td><code>git-hooks-ext worktree unlock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-pruned</code></td><td><code>git-hooks-ext worktree prune</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
-    <tr><td><code>worktree-repaired</code></td><td><code>git-hooks-ext worktree repair</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-created</code></td><td><code>ghe worktree add</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-removed</code></td><td><code>ghe worktree remove</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-moved</code></td><td><code>ghe worktree move</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-locked</code></td><td><code>ghe worktree lock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-unlocked</code></td><td><code>ghe worktree unlock</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-pruned</code></td><td><code>ghe worktree prune</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
+    <tr><td><code>worktree-repaired</code></td><td><code>ghe worktree repair</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
   </tbody>
 </table>
 

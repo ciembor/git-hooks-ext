@@ -15,7 +15,7 @@ MUTATION_TIMEOUT ?= 30000
 MUTATION_SANITIZERS := -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer
 
 BIN := git-hooks-ext
-SRC := src/git-hooks-ext.c src/git_runner.c src/process.c src/hook_install.c \
+SRC := src/git-hooks-ext.c src/doctor.c src/git_runner.c src/process.c src/hook_install.c \
 	src/hook_config.c src/shell_command.c src/ref_events.c src/ref_update.c \
 	src/worktree.c
 HEADERS := $(wildcard src/*.h)

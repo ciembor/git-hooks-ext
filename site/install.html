@@ -138,8 +138,9 @@ docker run --rm ghcr.io/ciembor/git-hooks-ext:0.3.0 --version</code></pre>
           <p>After installing the native package, enable the bridge in each repository:</p>
           <div class="after-install">
             <pre><code>cd your-repository
-git-hooks-ext install</code></pre>
-            <p>The command automatically selects config-based hooks on Git 2.54+ and the legacy bridge on older versions. After upgrading Git, remove the legacy <code>reference-transaction</code> hook and run <code>git-hooks-ext install</code> again.</p>
+git-hooks-ext install
+# or: ghe install</code></pre>
+            <p>The command automatically selects config-based hooks on Git 2.54+ and the legacy bridge on older versions. After upgrading Git, remove the legacy <code>reference-transaction</code> hook and run <code>git-hooks-ext install</code> again (or <code>ghe install</code>).</p>
             <p>To remove the bridge, run <code>git-hooks-ext uninstall</code>. It preserves any <code>reference-transaction</code> hook that was not installed by git-hooks-ext.</p>
           </div>
         </section>

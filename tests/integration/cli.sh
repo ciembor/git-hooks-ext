@@ -24,6 +24,28 @@ test_events_rejects_extra_args() {
 	assert_fails "$bin" events extra >"$TEST_DIR/out" 2>"$TEST_DIR/err"
 }
 
+test_doctor_reports_repository_compatibility() {
+	create_repo
+
+	(
+		cd "$repo"
+		"$bin" doctor >"$TEST_DIR/doctor"
+		grep -Eq '^Git version: +[0-9]' "$TEST_DIR/doctor"
+		grep -Eq '^Ref backend: +(files|reftable|unknown)$' "$TEST_DIR/doctor"
+		grep -Eq '^Config-based hooks: +(supported|not supported)$' "$TEST_DIR/doctor"
+		grep -Eq '^Bridge installed: +(yes \((config-based|legacy)\)|no)$' "$TEST_DIR/doctor"
+		grep -Eq '^branch-created +supported$' "$TEST_DIR/doctor"
+		grep -Eq '^branch-renamed +affected by Git bug$' "$TEST_DIR/doctor"
+	)
+}
+
+test_doctor_requires_a_repository() {
+	(
+		cd "$TEST_DIR"
+		assert_fails "$bin" doctor >"$TEST_DIR/out" 2>"$TEST_DIR/err"
+	)
+}
+
 test_add_writes_config_based_hook() {
 	create_repo
 
@@ -109,6 +131,8 @@ register_cli_tests() {
 	test_expect_success "reports the package version" test_version_command
 	test_expect_success "lists supported events" test_events_command_lists_supported_events
 	test_expect_success "rejects bad events args" test_events_rejects_extra_args
+	test_expect_success "reports repository compatibility" test_doctor_reports_repository_compatibility
+	test_expect_success "requires a repository for doctor" test_doctor_requires_a_repository
 	test_expect_success "adds config-based hook" test_add_writes_config_based_hook
 	test_expect_success "adds config-based hook with explicit scope" test_add_accepts_scope
 	test_expect_success "quotes added hook command" test_add_quotes_command_arguments
