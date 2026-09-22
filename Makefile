@@ -15,7 +15,7 @@ MUTATION_TIMEOUT ?= 30000
 MUTATION_SANITIZERS := -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer
 
 BIN := git-hooks-ext
-SRC := src/git-hooks-ext.c src/git_runner.c src/process.c src/hook_install.c \
+SRC := src/git-hooks-ext.c src/doctor.c src/git_runner.c src/process.c src/hook_install.c src/hook_manage.c \
 	src/hook_config.c src/shell_command.c src/ref_events.c src/ref_update.c \
 	src/worktree.c
 HEADERS := $(wildcard src/*.h)
@@ -77,6 +77,7 @@ $(BIN): $(SRC) $(HEADERS) VERSION
 install: $(BIN)
 	install -d "$(DESTDIR)$(PREFIX)/bin"
 	install -m 755 "$(BIN)" "$(DESTDIR)$(PREFIX)/bin/git-hooks-ext"
+	ln -sf git-hooks-ext "$(DESTDIR)$(PREFIX)/bin/ghe"
 
 $(TEST_REF_UPDATE_OBJ): src/ref_update.c src/ref_update.h src/coverage.h
 	mkdir -p "$(TEST_BUILD_DIR)"

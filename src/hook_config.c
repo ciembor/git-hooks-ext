@@ -58,6 +58,30 @@ int configure_hook_bridge(const char *scope)
 			      "git-hooks-ext reference-transaction");
 }
 
+static int remove_config_key(const char *scope, char *key)
+{
+	char *config_unset[] = {
+		"git", "config", (char *)scope, "--unset-all", key, NULL
+	};
+	int status = run_git(config_unset);
+
+	/* git config exits 5 when the key is already absent. */
+	return status == 5 ? 0 : status;
+}
+
+int remove_hook_bridge(const char *scope)
+{
+	char *event_key = hook_config_key("git-hooks-ext", "event");
+	char *command_key = hook_config_key("git-hooks-ext", "command");
+	int status = remove_config_key(scope, event_key);
+
+	if (!status)
+		status = remove_config_key(scope, command_key);
+	free(event_key);
+	free(command_key);
+	return status;
+}
+
 int configure_event_hook(const char *scope, const char *event,
 			 const char *name, int argc, char **argv)
 {

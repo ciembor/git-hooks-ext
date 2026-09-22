@@ -15,6 +15,25 @@ int run_git(char **argv)
 	return process_run("git", argv);
 }
 
+int git_config_hooks_supported(void)
+{
+	char *version;
+	unsigned int major;
+	unsigned int minor;
+	int supported;
+
+	version = process_read_line("git --version");
+	if (!version)
+		return -1;
+	if (sscanf(version, "git version %u.%u", &major, &minor) != 2) {
+		free(version);
+		return -1;
+	}
+	supported = major > 2 || (major == 2 && minor >= 54);
+	free(version);
+	return supported;
+}
+
 static bool config_hooks_supported(void)
 {
 	int status;

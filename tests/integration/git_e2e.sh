@@ -9,7 +9,7 @@ setup_real_git_events() {
 		git add tracked
 		git commit -qm initial
 		git branch -M main
-		"$bin" install --legacy
+		install_legacy_bridge
 		cat >.git/hooks/event-log <<'SH'
 #!/bin/sh
 printf '%s' "${0##*/}" >>"$GHE_EVENT_LOG"

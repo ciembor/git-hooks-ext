@@ -7,7 +7,7 @@ setup_worktree_repo() {
 		printf '%s\n' initial >tracked
 		git add tracked
 		git commit -qm initial
-		"$bin" install --legacy
+		install_legacy_bridge
 		cat >.git/hooks/worktree-event <<'SH'
 #!/bin/sh
 printf '%s' "${0##*/}" >>"$GHE_EVENT_LOG"

@@ -53,10 +53,15 @@
 
         <section id="synopsis">
           <h2>Synopsis</h2>
-          <pre><code>git-hooks-ext install [--local|--global|--system|--legacy]
+          <pre><code>git-hooks-ext install [--local|--global|--system]
+# or: ghe install [--local|--global|--system]
+git-hooks-ext uninstall [--local|--global|--system]
 git-hooks-ext add [--local|--global|--system] &lt;event&gt; &lt;name&gt; &lt;command&gt; [args...]
+git-hooks-ext list [--local|--global|--system]
+git-hooks-ext show [--local|--global|--system] &lt;name&gt;
+git-hooks-ext remove [--local|--global|--system] &lt;name&gt;
 git-hooks-ext events
-git-hooks-ext worktree &lt;command&gt; [args...]
+ghe worktree &lt;command&gt; [args...]
 git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
         </section>
 
@@ -69,6 +74,8 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
             <code>branch-created</code>, <code>tag-deleted</code>, and
             <code>branch-renamed</code>.
           </p>
+          <p><code>ghe</code> is a shorter, equivalent command installed alongside <code>git-hooks-ext</code>.</p>
+          <p>Run <code>git-hooks-ext doctor</code> in a repository for its detected Git compatibility and bridge status.</p>
           <p>
             It also provides a frontend for semantic worktree lifecycle events
             that Git does not expose as native hooks.
@@ -192,19 +199,19 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
           <p>
             Git has no hook for observing worktree lifecycle operations, so
             these events are available only through the
-            <code>git-hooks-ext worktree</code> wrapper.
+            <code>ghe worktree</code> wrapper.
           </p>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Wrapper command</th><th>Event</th></tr></thead>
               <tbody>
-                <tr><th><code>git-hooks-ext worktree add</code></th><td><code>worktree-created</code></td></tr>
-                <tr><th><code>git-hooks-ext worktree remove</code></th><td><code>worktree-removed</code></td></tr>
-                <tr><th><code>git-hooks-ext worktree move</code></th><td><code>worktree-moved</code></td></tr>
-                <tr><th><code>git-hooks-ext worktree lock</code></th><td><code>worktree-locked</code></td></tr>
-                <tr><th><code>git-hooks-ext worktree unlock</code></th><td><code>worktree-unlocked</code></td></tr>
-                <tr><th><code>git-hooks-ext worktree prune</code></th><td><code>worktree-pruned</code></td></tr>
-                <tr><th><code>git-hooks-ext worktree repair</code></th><td><code>worktree-repaired</code></td></tr>
+                <tr><th><code>ghe worktree add</code></th><td><code>worktree-created</code></td></tr>
+                <tr><th><code>ghe worktree remove</code></th><td><code>worktree-removed</code></td></tr>
+                <tr><th><code>ghe worktree move</code></th><td><code>worktree-moved</code></td></tr>
+                <tr><th><code>ghe worktree lock</code></th><td><code>worktree-locked</code></td></tr>
+                <tr><th><code>ghe worktree unlock</code></th><td><code>worktree-unlocked</code></td></tr>
+                <tr><th><code>ghe worktree prune</code></th><td><code>worktree-pruned</code></td></tr>
+                <tr><th><code>ghe worktree repair</code></th><td><code>worktree-repaired</code></td></tr>
               </tbody>
             </table>
           </div>
@@ -220,11 +227,9 @@ git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
         <section id="quick-start">
           <h2>Quick start</h2>
           <h3>1. Enable the hook bridge</h3>
-          <pre><code># Git 2.54+
-git-hooks-ext install
-
-# Git 2.53 and older
-git-hooks-ext install --legacy</code></pre>
+          <pre><code>git-hooks-ext install
+# or: ghe install</code></pre>
+          <p>The command automatically uses config-based hooks with Git 2.54+ or installs the legacy bridge on older Git versions. After upgrading Git, remove the legacy <code>reference-transaction</code> hook and run <code>git-hooks-ext install</code> again (or <code>ghe install</code>).</p>
 
           <h3>2. Add an event hook</h3>
           <pre><code>cat &gt; .git/hooks/branch-created &lt;&lt;'SH'
@@ -239,10 +244,10 @@ chmod +x .git/hooks/branch-created</code></pre>
 
           <h3>Worktree events</h3>
           <p>Use the worktree frontend when lifecycle events are needed:</p>
-          <pre><code>git-hooks-ext worktree add -b feature ../feature
-git-hooks-ext worktree lock --reason "offline disk" ../feature
-git-hooks-ext worktree move ../feature ../feature-renamed
-git-hooks-ext worktree remove ../feature-renamed</code></pre>
+          <pre><code>ghe worktree add -b feature ../feature
+ghe worktree lock --reason "offline disk" ../feature
+ghe worktree move ../feature ../feature-renamed
+ghe worktree remove ../feature-renamed</code></pre>
           <p>
             Arguments are forwarded to <code>git worktree</code>. Events are
             emitted after Git succeeds and the worktree state changes.
@@ -322,13 +327,13 @@ git-hooks-ext worktree remove ../feature-renamed</code></pre>
 	                <tr><th scope="row"><code>remote-head-created</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
 	                <tr><th scope="row"><code>root-ref-*</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
 	                <tr><th scope="row"><code>head-detached</code></th><td><code>git checkout --detach</code></td><td class="status-no">❌</td></tr>
-	                <tr><th scope="row"><code>worktree-created</code></th><td><code>git-hooks-ext worktree add</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-removed</code></th><td><code>git-hooks-ext worktree remove</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-moved</code></th><td><code>git-hooks-ext worktree move</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-locked</code></th><td><code>git-hooks-ext worktree lock</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-unlocked</code></th><td><code>git-hooks-ext worktree unlock</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-pruned</code></th><td><code>git-hooks-ext worktree prune</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
-                <tr><th scope="row"><code>worktree-repaired</code></th><td><code>git-hooks-ext worktree repair</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+	                <tr><th scope="row"><code>worktree-created</code></th><td><code>ghe worktree add</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-removed</code></th><td><code>ghe worktree remove</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-moved</code></th><td><code>ghe worktree move</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-locked</code></th><td><code>ghe worktree lock</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-unlocked</code></th><td><code>ghe worktree unlock</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-pruned</code></th><td><code>ghe worktree prune</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
+                <tr><th scope="row"><code>worktree-repaired</code></th><td><code>ghe worktree repair</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
               </tbody>
             </table>
           </div>

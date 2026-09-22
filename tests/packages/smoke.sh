@@ -8,6 +8,8 @@ PATH="$(dirname "$binary"):$PATH"
 export PATH
 test "$(command -v git-hooks-ext)" = "$binary"
 test "$(git-hooks-ext --version)" = "git-hooks-ext $version"
+test "$(command -v ghe)" = "$(dirname "$binary")/ghe"
+test "$(ghe --version)" = "git-hooks-ext $version"
 git-hooks-ext events | grep -Fx branch-created
 GIT_CONFIG_GLOBAL=/dev/null
 GIT_CONFIG_NOSYSTEM=1
@@ -18,7 +20,7 @@ trap 'rm -rf "$work"' EXIT
 git init -q "$work/repo"
 cd "$work/repo"
 git -c user.name='Package Test' -c user.email=test@example.com commit --allow-empty -qm initial
-git-hooks-ext install --legacy
+ghe install
 test -x .git/hooks/reference-transaction
 cat >.git/hooks/branch-created <<'SH'
 #!/bin/sh
