@@ -2,6 +2,7 @@
 
 #include "hook_install.h"
 
+#include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -118,12 +119,11 @@ int remove_legacy_bridge(void)
 		fprintf(stderr, "git-hooks-ext: failed to resolve hooks path\n");
 		return 1;
 	}
-	hook = fopen(hook_path, "r");
 	if (coverage_fail("GHE_TEST_LEGACY_OPEN_FAIL")) {
-		if (hook)
-			fclose(hook);
+		errno = EACCES;
 		hook = NULL;
-	}
+	} else
+		hook = fopen(hook_path, "r");
 	if (!hook) {
 		if (access(hook_path, F_OK) == 0) {
 			perror(hook_path);
@@ -139,8 +139,13 @@ int remove_legacy_bridge(void)
 		free(hook_path);
 		return 0;
 	}
-	if (fclose(hook) != 0 || coverage_fail("GHE_TEST_LEGACY_UNLINK_FAIL") ||
-	    unlink(hook_path) != 0) {
+	if (fclose(hook) != 0 || coverage_fail("GHE_TEST_LEGACY_CLOSE_FAIL")) {
+		perror(hook_path);
+		status = 1;
+	} else if (coverage_fail("GHE_TEST_LEGACY_UNLINK_FAIL") ||
+		   unlink(hook_path) != 0) {
+		if (coverage_fail("GHE_TEST_LEGACY_UNLINK_FAIL"))
+			errno = EPERM;
 		perror(hook_path);
 		status = 1;
 	}

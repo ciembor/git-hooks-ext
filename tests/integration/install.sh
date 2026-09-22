@@ -82,6 +82,8 @@ test_uninstall_reports_legacy_bridge_removal_failures() {
 		install_legacy_bridge
 		assert_fails env GHE_TEST_LEGACY_OPEN_FAIL=1 "$bin" uninstall
 		test -e .git/hooks/reference-transaction
+		assert_fails env GHE_TEST_LEGACY_CLOSE_FAIL=1 "$bin" uninstall
+		test -e .git/hooks/reference-transaction
 		assert_fails env GHE_TEST_LEGACY_UNLINK_FAIL=1 "$bin" uninstall
 		test -e .git/hooks/reference-transaction
 		"$bin" uninstall
