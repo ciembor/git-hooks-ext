@@ -92,6 +92,7 @@ test_uninstall_reports_legacy_bridge_removal_failures() {
 }
 
 test_uninstall_reports_an_unremovable_legacy_bridge() {
+	test "$(id -u)" -eq 0 && test_skip "root bypasses directory permissions"
 	create_repo
 
 	(
