@@ -157,6 +157,7 @@ int remove_event_hook(const char *scope, const char *name)
 	char *event_key;
 	char *command_key;
 	char *event;
+	char *hook_command;
 	int status;
 
 	if (strcmp(name, "git-hooks-ext") == 0) {
@@ -171,7 +172,8 @@ int remove_event_hook(const char *scope, const char *name)
 		return 1;
 	}
 	event = read_config_value(scope, event_key);
-	if (!event) {
+	hook_command = read_config_value(scope, command_key);
+	if (!event && !hook_command) {
 		fprintf(stderr, "git-hooks-ext: hook '%s' is not configured in %s\n", name,
 			scope);
 		free(event_key);
@@ -179,6 +181,7 @@ int remove_event_hook(const char *scope, const char *name)
 		return 1;
 	}
 	free(event);
+	free(hook_command);
 	status = remove_config_key(scope, event_key);
 	if (!status)
 		status = remove_config_key(scope, command_key);

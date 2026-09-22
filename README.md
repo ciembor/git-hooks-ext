@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/github/license/ciembor/git-hooks-ext)](LICENSE)
 [![Lint](https://github.com/ciembor/git-hooks-ext/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/ciembor/git-hooks-ext/actions/workflows/lint.yml)
 [![Tests](https://github.com/ciembor/git-hooks-ext/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/ciembor/git-hooks-ext/actions/workflows/tests.yml)
-[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/ciembor/git-hooks-ext/actions/workflows/coverage.yml)
+[![Coverage](https://github.com/ciembor/git-hooks-ext/actions/workflows/coverage.yml/badge.svg?branch=main)](https://github.com/ciembor/git-hooks-ext/actions/workflows/coverage.yml)
 
 # git-hooks-ext
 

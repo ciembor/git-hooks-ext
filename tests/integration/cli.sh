@@ -122,6 +122,85 @@ test_list_show_and_remove_configured_hooks() {
 	)
 }
 
+test_list_handles_empty_configuration_and_hides_bridge() {
+	create_repo
+
+	(
+		cd "$repo"
+		install_config_bridge
+		"$bin" list >"$TEST_DIR/list"
+		assert_file_equals "NAME                 EVENT              COMMAND" "$TEST_DIR/list"
+	)
+}
+
+test_remove_cleans_partial_hook_configuration() {
+	create_repo
+
+	(
+		cd "$repo"
+		git config --local hook.partial.event branch-created
+		"$bin" list >"$TEST_DIR/list"
+		grep -Eq '^partial +branch-created +<missing command>$' "$TEST_DIR/list"
+		"$bin" show partial >"$TEST_DIR/show"
+		grep -Eq '^partial +branch-created +<missing command>$' "$TEST_DIR/show"
+		"$bin" remove partial
+		! git config --local --get hook.partial.event
+
+		git config --local hook.orphan.command ./orphan
+		"$bin" remove orphan
+		! git config --local --get hook.orphan.command
+	)
+}
+
+test_hook_configuration_commands_support_global_scope() {
+	create_repo
+	global_config="$TEST_DIR/global.gitconfig"
+
+	(
+		cd "$repo"
+		env GIT_CONFIG_GLOBAL="$global_config" GIT_CONFIG_NOSYSTEM=1 \
+			"$bin" add --global branch-created global-hook ./global-command
+		env GIT_CONFIG_GLOBAL="$global_config" GIT_CONFIG_NOSYSTEM=1 \
+			"$bin" list --global >"$TEST_DIR/global-list"
+		grep -Eq '^global-hook +branch-created +[[:print:]]*global-command' "$TEST_DIR/global-list"
+		env GIT_CONFIG_GLOBAL="$global_config" GIT_CONFIG_NOSYSTEM=1 \
+			"$bin" show --global global-hook >"$TEST_DIR/global-show"
+		grep -Eq '^global-hook +branch-created +[[:print:]]*global-command' "$TEST_DIR/global-show"
+		env GIT_CONFIG_GLOBAL="$global_config" GIT_CONFIG_NOSYSTEM=1 \
+			"$bin" remove --global global-hook
+		! git config --file "$global_config" --get hook.global-hook.event
+	)
+}
+
+test_hook_configuration_commands_protect_bridge_and_require_repository() {
+	create_repo
+
+	(
+		cd "$repo"
+		assert_exit_code 2 "$bin" show git-hooks-ext >"$TEST_DIR/out0" 2>"$TEST_DIR/err0"
+		assert_exit_code 2 "$bin" remove git-hooks-ext >"$TEST_DIR/out1" 2>"$TEST_DIR/err1"
+	)
+	(
+		cd "$TEST_DIR"
+		assert_fails "$bin" list >"$TEST_DIR/out2" 2>"$TEST_DIR/err2"
+		assert_fails "$bin" show missing >"$TEST_DIR/out3" 2>"$TEST_DIR/err3"
+		assert_fails "$bin" remove missing >"$TEST_DIR/out4" 2>"$TEST_DIR/err4"
+	)
+}
+
+test_list_and_show_preserve_quoted_commands() {
+	create_repo
+
+	(
+		cd "$repo"
+		"$bin" add branch-created quoted "./command with space" "it's quoted"
+		"$bin" list >"$TEST_DIR/list"
+		"$bin" show quoted >"$TEST_DIR/show"
+		grep -Fq "'./command with space' 'it'\\''s quoted'" "$TEST_DIR/list"
+		grep -Fq "'./command with space' 'it'\\''s quoted'" "$TEST_DIR/show"
+	)
+}
+
 test_hook_configuration_commands_reject_invalid_arguments() {
 	create_repo
 
@@ -172,6 +251,11 @@ register_cli_tests() {
 	test_expect_success "quotes added hook command" test_add_quotes_command_arguments
 	test_expect_success "roundtrips empty, quoted and literal shell arguments" test_add_command_roundtrips_special_arguments
 	test_expect_success "lists, shows and removes configured hooks" test_list_show_and_remove_configured_hooks
+	test_expect_success "lists an empty configuration without the bridge" test_list_handles_empty_configuration_and_hides_bridge
+	test_expect_success "removes partial hook configuration" test_remove_cleans_partial_hook_configuration
+	test_expect_success "manages hooks in global configuration" test_hook_configuration_commands_support_global_scope
+	test_expect_success "protects the bridge and requires a repository" test_hook_configuration_commands_protect_bridge_and_require_repository
+	test_expect_success "preserves quoted commands in list and show" test_list_and_show_preserve_quoted_commands
 	test_expect_success "rejects invalid hook configuration commands" test_hook_configuration_commands_reject_invalid_arguments
 	test_expect_success "rejects bad add args" test_add_rejects_bad_args
 	test_expect_success "rejects bad top-level args" test_main_rejects_bad_args
