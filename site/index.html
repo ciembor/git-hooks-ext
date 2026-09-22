@@ -233,11 +233,13 @@ ghe reference-transaction &lt;state&gt; [--dry-run]</code></pre>
           <p>The command automatically uses config-based hooks with Git 2.54+ or installs the legacy bridge on older Git versions. After upgrading Git, remove the legacy <code>reference-transaction</code> hook and run <code>git-hooks-ext install</code> again (or <code>ghe install</code>).</p>
 
           <h3>2. Add an event hook</h3>
-          <pre><code>cat &gt; .git/hooks/branch-created &lt;&lt;'SH'
+          <pre><code>mkdir -p scripts
+cat &gt; scripts/announce-branch &lt;&lt;'SH'
 #!/bin/sh
 echo "created branch: $1"
 SH
-chmod +x .git/hooks/branch-created</code></pre>
+chmod +x scripts/announce-branch
+ghe add branch-created announce-branch ./scripts/announce-branch</code></pre>
 
           <h3>3. Trigger it</h3>
           <pre><code>git branch topic
@@ -246,8 +248,8 @@ chmod +x .git/hooks/branch-created</code></pre>
           <h3>Manage configured hooks</h3>
           <p>For config-based hooks added with <code>ghe add</code>, inspect and manage the named entries:</p>
           <pre><code>ghe list
-ghe show create-branch-env
-ghe remove create-branch-env</code></pre>
+ghe show announce-branch
+ghe remove announce-branch</code></pre>
           <p><code>list</code> prints each hook name, event and command. The commands use local configuration by default and accept <code>--local</code>, <code>--global</code> or <code>--system</code>. The technical bridge is not listed; use <code>install</code> and <code>uninstall</code> to manage it.</p>
 
           <h3>Diagnose compatibility</h3>

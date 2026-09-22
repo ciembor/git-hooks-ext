@@ -122,17 +122,19 @@ shows which commands produced each event in end-to-end tests.
 
 ## Quick Start
 
-Enable the extension in a Git repository and add a hook:
+Enable the extension in a Git repository and add a configured hook:
 
 ```sh
 git-hooks-ext install
 # or: ghe install
 
-cat > .git/hooks/branch-created <<'SH'
+mkdir -p scripts
+cat > scripts/announce-branch <<'SH'
 #!/bin/sh
 echo "created branch: $1"
 SH
-chmod +x .git/hooks/branch-created
+chmod +x scripts/announce-branch
+ghe add branch-created announce-branch ./scripts/announce-branch
 ```
 
 `ghe` is a shorter, equivalent command installed alongside `git-hooks-ext`.
@@ -266,8 +268,8 @@ git-hooks-ext install
 # or: ghe install
 ghe add branch-created create-branch-env ./scripts/create-branch-env
 ghe list
-ghe show create-branch-env
-ghe remove create-branch-env
+ghe show announce-branch
+ghe remove announce-branch
 ```
 
 `list` prints the configured hook name, event and command. `show` and `remove`
