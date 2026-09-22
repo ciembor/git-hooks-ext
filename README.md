@@ -137,7 +137,7 @@ chmod +x .git/hooks/branch-created
 
 `ghe` is a shorter, equivalent command installed alongside `git-hooks-ext`.
 
-Run `git-hooks-ext doctor` inside a repository to show the detected Git and
+Run `ghe doctor` inside a repository to show the detected Git and
 reference backend, installed bridge, and compatibility status for every event.
 
 Now create a branch:
@@ -152,7 +152,7 @@ The hook prints:
 created branch: topic
 ```
 
-Run `git-hooks-ext events` to list every supported event. If you use
+Run `ghe events` to list every supported event. If you use
 `core.hooksPath`, put the event hook in that directory instead.
 
 ## Install
@@ -215,7 +215,7 @@ Git, remove that legacy bridge and run `git-hooks-ext install` again (or `ghe in
 Remove the bridge with:
 
 ```sh
-git-hooks-ext uninstall
+ghe uninstall
 ```
 
 This removes the config-based bridge and a legacy bridge installed by a current
@@ -264,10 +264,10 @@ config:
 ```sh
 git-hooks-ext install
 # or: ghe install
-git-hooks-ext add branch-created create-branch-env ./scripts/create-branch-env
-git-hooks-ext list
-git-hooks-ext show create-branch-env
-git-hooks-ext remove create-branch-env
+ghe add branch-created create-branch-env ./scripts/create-branch-env
+ghe list
+ghe show create-branch-env
+ghe remove create-branch-env
 ```
 
 `list` prints the configured hook name, event and command. `show` and `remove`
