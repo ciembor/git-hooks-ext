@@ -2,6 +2,8 @@ name: Coverage
 
 on:
   push:
+    paths-ignore:
+      - coverage-badge.json
   pull_request:
   workflow_dispatch:
 
@@ -14,6 +16,8 @@ concurrency:
 
 jobs:
   coverage:
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
@@ -26,3 +30,24 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang llvm
       - name: Verify 100% coverage
         run: make coverage
+      - name: Update coverage percentage badge
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          test -s coverage/report.txt
+          percentage=$(awk '/^TOTAL/ { print $10 }' coverage/report.txt)
+          case "$percentage" in
+            100.00%) color=brightgreen ;;
+            90.*|9[5-9].*) color=yellowgreen ;;
+            80.*|9[0-4].*) color=yellow ;;
+            *) color=red ;;
+          esac
+          printf '{"schemaVersion":1,"label":"coverage","message":"%s","color":"%s"}\n' \
+            "$percentage" "$color" > coverage-badge.json
+          if git diff --quiet -- coverage-badge.json; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add coverage-badge.json
+          git commit -m "chore: update coverage badge [skip ci]"
+          git push
