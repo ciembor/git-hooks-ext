@@ -8,7 +8,7 @@ license=('GPL-2.0-only')
 depends=('git>=2.29')
 makedepends=('gcc' 'make')
 source=("$url/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
-sha256sums=('2fdb81b80ae60427d450d74f519ad9eb11f18298ab56977056c4aaf77f07dfd2')
+sha256sums=('759bda27347c9d6702843146fada0a5ac8971806ce0bb72bb3c683dc48fce6f5')
 
 build() {
   make -C "$srcdir"

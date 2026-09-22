@@ -2,7 +2,7 @@ FROM docker.io/library/fedora:44 AS builder
 RUN dnf install -y gcc make git rpm-build curl && dnf clean all
 WORKDIR /build
 COPY packaging/fedora/git-hooks-ext.spec /build/SPECS/git-hooks-ext.spec
-RUN mkdir -p SOURCES && curl -fL --retry 3 -o SOURCES/git-hooks-ext-0.4.0.tar.gz https://github.com/ciembor/git-hooks-ext/releases/download/v0.4.0/git-hooks-ext-0.4.0.tar.gz && echo '2fdb81b80ae60427d450d74f519ad9eb11f18298ab56977056c4aaf77f07dfd2  SOURCES/git-hooks-ext-0.4.0.tar.gz' | sha256sum -c - && rpmbuild -ba --define '_topdir /build' SPECS/git-hooks-ext.spec
+RUN mkdir -p SOURCES && curl -fL --retry 3 -o SOURCES/git-hooks-ext-0.4.0.tar.gz https://github.com/ciembor/git-hooks-ext/releases/download/v0.4.0/git-hooks-ext-0.4.0.tar.gz && echo '759bda27347c9d6702843146fada0a5ac8971806ce0bb72bb3c683dc48fce6f5  SOURCES/git-hooks-ext-0.4.0.tar.gz' | sha256sum -c - && rpmbuild -ba --define '_topdir /build' SPECS/git-hooks-ext.spec
 RUN mkdir /packages && find RPMS SRPMS -name '*.rpm' -exec cp {} /packages/ \;
 
 FROM docker.io/library/fedora:44
