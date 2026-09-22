@@ -83,6 +83,28 @@ SH
 	)
 }
 
+test_doctor_rejects_an_unreadable_git_version() {
+	create_repo
+	create_fake_git <<'SH'
+#!/bin/sh
+if test "$1 $2" = "rev-parse --git-dir"; then
+	printf '%s\n' .git
+	exit 0
+fi
+if test "$1" = --version; then
+	printf '%s\n' 'unknown version'
+	exit 0
+fi
+exec /usr/bin/git "$@"
+SH
+
+	(
+		cd "$repo"
+		assert_fails env PATH="$fakebin:$PATH" "$bin" doctor >"$TEST_DIR/out" 2>"$TEST_DIR/err"
+		grep -Fqx 'git-hooks-ext: failed to determine the Git version' "$TEST_DIR/command.err"
+	)
+}
+
 test_add_writes_config_based_hook() {
 	create_repo
 
@@ -246,8 +268,10 @@ test_hook_configuration_commands_reject_invalid_arguments() {
 		assert_exit_code 2 "$bin" list extra >"$TEST_DIR/out0" 2>"$TEST_DIR/err0"
 		assert_exit_code 2 "$bin" show >"$TEST_DIR/out1" 2>"$TEST_DIR/err1"
 		assert_exit_code 2 "$bin" remove one two >"$TEST_DIR/out2" 2>"$TEST_DIR/err2"
-		assert_fails "$bin" show missing >"$TEST_DIR/out3" 2>"$TEST_DIR/err3"
-		assert_fails "$bin" remove missing >"$TEST_DIR/out4" 2>"$TEST_DIR/err4"
+		assert_exit_code 2 "$bin" uninstall --bad >"$TEST_DIR/out3" 2>"$TEST_DIR/err3"
+		assert_exit_code 2 "$bin" doctor extra >"$TEST_DIR/out4" 2>"$TEST_DIR/err4"
+		assert_fails "$bin" show missing >"$TEST_DIR/out5" 2>"$TEST_DIR/err5"
+		assert_fails "$bin" remove missing >"$TEST_DIR/out6" 2>"$TEST_DIR/err6"
 	)
 }
 
@@ -284,6 +308,7 @@ register_cli_tests() {
 	test_expect_success "reports repository compatibility" test_doctor_reports_repository_compatibility
 	test_expect_success "requires a repository for doctor" test_doctor_requires_a_repository
 	test_expect_success "reports version-specific doctor compatibility" test_doctor_reports_version_specific_compatibility
+	test_expect_success "rejects an unreadable Git version in doctor" test_doctor_rejects_an_unreadable_git_version
 	test_expect_success "adds config-based hook" test_add_writes_config_based_hook
 	test_expect_success "adds config-based hook with explicit scope" test_add_accepts_scope
 	test_expect_success "quotes added hook command" test_add_quotes_command_arguments

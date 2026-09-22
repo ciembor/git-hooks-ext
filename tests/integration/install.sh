@@ -106,6 +106,16 @@ test_legacy_install_explains_upgrade() {
 	)
 }
 
+test_legacy_install_rejects_nonlocal_scope() {
+	create_repo
+
+	(
+		cd "$repo"
+		assert_exit_code 2 with_legacy_git "$bin" install --global >"$TEST_DIR/out" 2>"$TEST_DIR/err"
+		test ! -e .git/hooks/reference-transaction
+	)
+}
+
 test_legacy_reports_directory_creation_error() {
 	create_repo
 	(
@@ -153,6 +163,7 @@ register_install_tests() {
 	test_expect_success "returns first install config failure" test_install_returns_first_config_failure
 	test_expect_success "creates a missing hooks directory" test_legacy_creates_hooks_directory
 	test_expect_success "legacy install explains the Git upgrade migration" test_legacy_install_explains_upgrade
+	test_expect_success "legacy install rejects nonlocal scope" test_legacy_install_rejects_nonlocal_scope
 	test_expect_success "reports directory creation errors before writing a hook" test_legacy_reports_directory_creation_error
 	test_expect_success "empty hooks path uses the current directory" test_empty_hooks_path_uses_current_directory
 	test_expect_success "legacy install reports invalid hooks dir" test_legacy_install_fails_without_git_hooks_dir
