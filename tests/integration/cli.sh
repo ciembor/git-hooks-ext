@@ -46,6 +46,43 @@ test_doctor_requires_a_repository() {
 	)
 }
 
+test_doctor_reports_version_specific_compatibility() {
+	create_repo
+	create_fake_git <<'SH'
+#!/bin/sh
+case "$1 $2" in
+  "--version ") printf '%s\n' "git version $DOCTOR_GIT_VERSION" ;;
+  "rev-parse --git-dir") printf '%s\n' .git ;;
+  "rev-parse --git-path") printf '%s\n' .git/hooks ;;
+  "rev-parse --show-ref-format") printf '%s\n' reftable ;;
+  "config --get")
+    case "$3" in
+      hook.git-hooks-ext.event) printf '%s\n' reference-transaction ;;
+      hook.git-hooks-ext.command) printf '%s\n' 'git-hooks-ext reference-transaction' ;;
+      *) exit 1 ;;
+    esac ;;
+  *) exec /usr/bin/git "$@" ;;
+esac
+SH
+
+	(
+		cd "$repo"
+		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=2.27.0 "$bin" doctor >"$TEST_DIR/old-doctor"
+		grep -Eq '^branch-created +requires Git 2.28\+$' "$TEST_DIR/old-doctor"
+		grep -Eq '^branch-deleted +requires Git 2.28\+$' "$TEST_DIR/old-doctor"
+		grep -Eq '^Ref backend: +files$' "$TEST_DIR/old-doctor"
+
+		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=2.54.0 "$bin" doctor >"$TEST_DIR/new-doctor"
+		grep -Eq '^Ref backend: +reftable$' "$TEST_DIR/new-doctor"
+		grep -Eq '^Config-based hooks: +supported$' "$TEST_DIR/new-doctor"
+		grep -Eq '^Bridge installed: +yes \(config-based\)$' "$TEST_DIR/new-doctor"
+		grep -Eq '^remote-branch-renamed +requires Git 2.55\+$' "$TEST_DIR/new-doctor"
+
+		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=3.0.0 "$bin" doctor >"$TEST_DIR/major-doctor"
+		grep -Eq '^remote-branch-renamed +supported$' "$TEST_DIR/major-doctor"
+	)
+}
+
 test_add_writes_config_based_hook() {
 	create_repo
 
@@ -246,6 +283,7 @@ register_cli_tests() {
 	test_expect_success "rejects bad events args" test_events_rejects_extra_args
 	test_expect_success "reports repository compatibility" test_doctor_reports_repository_compatibility
 	test_expect_success "requires a repository for doctor" test_doctor_requires_a_repository
+	test_expect_success "reports version-specific doctor compatibility" test_doctor_reports_version_specific_compatibility
 	test_expect_success "adds config-based hook" test_add_writes_config_based_hook
 	test_expect_success "adds config-based hook with explicit scope" test_add_accepts_scope
 	test_expect_success "quotes added hook command" test_add_quotes_command_arguments
