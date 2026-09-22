@@ -77,6 +77,7 @@ $(BIN): $(SRC) $(HEADERS) VERSION
 install: $(BIN)
 	install -d "$(DESTDIR)$(PREFIX)/bin"
 	install -m 755 "$(BIN)" "$(DESTDIR)$(PREFIX)/bin/git-hooks-ext"
+	ln -sf git-hooks-ext "$(DESTDIR)$(PREFIX)/bin/ghe"
 
 $(TEST_REF_UPDATE_OBJ): src/ref_update.c src/ref_update.h src/coverage.h
 	mkdir -p "$(TEST_BUILD_DIR)"

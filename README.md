@@ -134,6 +134,8 @@ SH
 chmod +x .git/hooks/branch-created
 ```
 
+`ghe` is a shorter, equivalent command installed alongside `git-hooks-ext`.
+
 Now create a branch:
 
 ```sh
