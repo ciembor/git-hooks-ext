@@ -24,7 +24,6 @@ jobs:
       CC: clang
       LLVM_COV: llvm-cov
       LLVM_PROFDATA: llvm-profdata
-      GHE_COVERAGE_DIAGNOSTICS: 1
     steps:
       - uses: actions/checkout@v5
       - name: Install LLVM coverage tools
@@ -35,7 +34,7 @@ jobs:
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           test -s coverage/report.txt
-          percentage=$(awk '/^TOTAL/ { print $10 }' coverage/report.txt)
+          percentage=$(cat coverage/source-line-coverage.txt)
           case "$percentage" in
             100.00%) color=brightgreen ;;
             90.*|9[5-9].*) color=yellowgreen ;;
