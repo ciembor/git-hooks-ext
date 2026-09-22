@@ -24,7 +24,6 @@ jobs:
       CC: clang
       LLVM_COV: llvm-cov
       LLVM_PROFDATA: llvm-profdata
-      GHE_COVERAGE_DIAGNOSTICS: 1
     steps:
       - uses: actions/checkout@v5
       - name: Install LLVM coverage tools
