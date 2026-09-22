@@ -30,3 +30,4 @@ make install PREFIX=%{_prefix} DESTDIR=%{buildroot}
 %license LICENSE COPYRIGHT
 %doc README.md
 %{_bindir}/git-hooks-ext
+%{_bindir}/ghe
