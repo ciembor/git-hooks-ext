@@ -172,7 +172,7 @@ Native package recipes are available for:
 - Alpine 3.24: `packaging/alpine/APKBUILD` (APK, x86-64 / AArch64).
 
 Native binary packages and recipes are attached to the
-[v0.3.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.3.0).
+[v0.4.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.4.0).
 Download the file for your distribution and architecture (`uname -m`), plus
 `SHA256SUMS`, and verify it with `sha256sum --check --ignore-missing SHA256SUMS`.
 The package installation matrix covers 11 distribution/architecture
@@ -197,11 +197,11 @@ Install a downloaded native package with its distribution's package manager:
 
 ```sh
 # Fedora
-sudo dnf install ./git-hooks-ext-0.3.0-1.fc44.*.rpm
+sudo dnf install ./git-hooks-ext-0.4.0-1.fc44.*.rpm
 # Arch Linux
-sudo pacman -U ./git-hooks-ext-0.3.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ./git-hooks-ext-0.4.0-1-x86_64.pkg.tar.zst
 # Alpine (verify the release checksum first; no trusted APK repository yet)
-sudo apk add --allow-untrusted ./git-hooks-ext-0.3.0-r0-alpine3.24-*.apk
+sudo apk add --allow-untrusted ./git-hooks-ext-0.4.0-r0-alpine3.24-*.apk
 ```
 
 Alpine packages are signed with a disposable build key; that key is not added
@@ -211,7 +211,7 @@ No DNF, pacman or APK update repository is configured by these downloads.
 ### Package Builds
 
 `VERSION` is the single build/package version; `git-hooks-ext --version`
-reports it. This release is `0.3.0`, licensed under GPL-2.0-only.
+reports it. This release is `0.4.0`, licensed under GPL-2.0-only.
 
 #### Homebrew (local macOS)
 
@@ -224,7 +224,7 @@ brew install --build-from-source local/git-hooks-ext/git-hooks-ext
 ```
 
 The generated tap is `dist/homebrew-git-hooks-ext/`, and the matching source
-archive is `dist/git-hooks-ext-0.3.0.tar.gz`. Its formula contains an absolute
+archive is `dist/git-hooks-ext-0.4.0.tar.gz`. Its formula contains an absolute
 local source URL and SHA-256 checksum; keep the archive available. This is a
 local tap, not a published Homebrew repository. Publishing requires replacing
 the local URL with a permanent release URL and adding the project homepage.
@@ -241,7 +241,7 @@ On Debian, install `build-essential`, `dpkg-dev` and `git`, then:
 
 ```sh
 make package-deb
-sudo apt install ./dist/debian/git-hooks-ext_0.3.0-1_*.deb
+sudo apt install ./dist/debian/git-hooks-ext_0.4.0-1_*.deb
 ```
 
 The `.deb` uses the build system's architecture, installs to `/usr/bin`, and

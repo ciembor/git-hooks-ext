@@ -172,14 +172,14 @@ it does not depend on local files or paths.
 ### Debian 12 (AMD64 / ARM64)
 
 Download the package and checksums from the
-[v0.3.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.3.0):
+[v0.4.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.4.0):
 
 ```sh
 arch=$(dpkg --print-architecture)
-curl -fLO "https://github.com/ciembor/git-hooks-ext/releases/download/v0.3.0/git-hooks-ext_0.3.0-1_${arch}.deb"
-curl -fLO https://github.com/ciembor/git-hooks-ext/releases/download/v0.3.0/SHA256SUMS
+curl -fLO "https://github.com/ciembor/git-hooks-ext/releases/download/v0.4.0/git-hooks-ext_0.4.0-1_${arch}.deb"
+curl -fLO https://github.com/ciembor/git-hooks-ext/releases/download/v0.4.0/SHA256SUMS
 sha256sum --check --ignore-missing SHA256SUMS
-sudo apt install "./git-hooks-ext_0.3.0-1_${arch}.deb"
+sudo apt install "./git-hooks-ext_0.4.0-1_${arch}.deb"
 ```
 
 Packages are available for AMD64 (Intel/AMD 64-bit) and ARM64 (AArch64).
