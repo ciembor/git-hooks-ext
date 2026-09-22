@@ -21,7 +21,13 @@ git init -q "$work/repo"
 cd "$work/repo"
 git -c user.name='Package Test' -c user.email=test@example.com commit --allow-empty -qm initial
 ghe install
-test -x .git/hooks/reference-transaction
+if test "$(git config --local --get hook.git-hooks-ext.event)" = \
+	"reference-transaction"; then
+	test "$(git config --local --get hook.git-hooks-ext.command)" = \
+		"git-hooks-ext reference-transaction"
+else
+	test -x .git/hooks/reference-transaction
+fi
 cat >.git/hooks/branch-created <<'SH'
 #!/bin/sh
 printf 'created %s\n' "$1" >> events.out
