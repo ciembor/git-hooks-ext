@@ -61,6 +61,7 @@ git-hooks-ext list [--local|--global|--system]
 git-hooks-ext show [--local|--global|--system] &lt;name&gt;
 git-hooks-ext remove [--local|--global|--system] &lt;name&gt;
 git-hooks-ext events
+git-hooks-ext doctor
 ghe worktree &lt;command&gt; [args...]
 git-hooks-ext reference-transaction &lt;state&gt; [--dry-run]</code></pre>
         </section>
@@ -241,6 +242,17 @@ chmod +x .git/hooks/branch-created</code></pre>
           <h3>3. Trigger it</h3>
           <pre><code>git branch topic
 <span>created branch: topic</span></code></pre>
+
+          <h3>Manage configured hooks</h3>
+          <p>For config-based hooks added with <code>git-hooks-ext add</code>, inspect and manage the named entries:</p>
+          <pre><code>git-hooks-ext list
+git-hooks-ext show create-branch-env
+git-hooks-ext remove create-branch-env</code></pre>
+          <p><code>list</code> prints each hook name, event and command. The commands use local configuration by default and accept <code>--local</code>, <code>--global</code> or <code>--system</code>. The technical bridge is not listed; use <code>install</code> and <code>uninstall</code> to manage it.</p>
+
+          <h3>Diagnose compatibility</h3>
+          <pre><code>git-hooks-ext doctor</code></pre>
+          <p>Run this inside a repository to see the detected Git version and ref backend, the bridge state, and whether each event is supported, requires a newer Git version, or is affected by a known Git bug.</p>
 
           <h3>Worktree events</h3>
           <p>Use the worktree frontend when lifecycle events are needed:</p>
