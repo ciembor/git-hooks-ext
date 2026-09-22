@@ -157,6 +157,9 @@ coverage:
 	LLVM_PROFILE_FILE="$(CURDIR)/$(COVERAGE_DIR)/coverage-%p.profraw" GIT_HOOKS_EXT_BIN="$(CURDIR)/$(COVERAGE_BIN)" GIT_HOOKS_EXT_REF_UPDATE_UNIT="$(CURDIR)/$(COVERAGE_REF_UPDATE_UNIT)" GIT_HOOKS_EXT_RUNTIME_UNIT="$(CURDIR)/$(COVERAGE_RUNTIME_UNIT)" GIT_HOOKS_EXT_COVERAGE=1 ./tests/run.sh
 	$(LLVM_PROFDATA) merge -sparse "$(COVERAGE_DIR)"/*.profraw -o "$(COVERAGE_PROFDATA)"
 	$(LLVM_COV) report "$(COVERAGE_BIN)" -instr-profile="$(COVERAGE_PROFDATA)" $(SRC) | tee "$(COVERAGE_DIR)/report.txt"
+	@if test "$${GHE_COVERAGE_DIAGNOSTICS:-0}" = 1; then \
+		$(LLVM_COV) show "$(COVERAGE_BIN)" -instr-profile="$(COVERAGE_PROFDATA)" src/hook_install.c; \
+	fi
 	awk '/^TOTAL/ { if ($$4 != "100.00%" || $$7 != "100.00%" || $$10 != "100.00%") exit 1 }' "$(COVERAGE_DIR)/report.txt"
 
 coverage-html: coverage
