@@ -87,6 +87,14 @@ Supported ref events are grouped by purpose:
   </tbody>
 </table>
 
+`*-created` is a creation candidate, not an independent proof that the ref did
+not exist. Git uses an all-zero old value both when it creates a ref and when
+an update does not require a particular previous value. This bridge maps every
+`zero -> value` record to `*-created`, which is usually a creation. It runs
+only at the `committed` state, however, so the ref already has its new value
+and cannot be checked with `git rev-parse` to distinguish those cases. Hooks
+that need that distinction must treat `*-created` as a candidate.
+
 The `worktree-ref-*` events describe updates under `refs/worktree/*`. They are
 separate from the lifecycle events below.
 
@@ -359,10 +367,10 @@ remote branches by this classifier.
 Other ref commands can provide incomplete information too. In the tested Git
 versions, `git notes append`, `git notes remove` and a second `git stash push`
 report a zero old value even though those refs already exist; the bridge
-therefore emits another `note-created` or `stash-created` instead of an update.
-`git remote prune` removes its tracking branch without a semantic deletion.
-The command matrix below separates these limitations from events emitted when
-Git supplies complete transactions.
+therefore emits another `note-created` or `stash-created` creation candidate
+instead of an update. `git remote prune` removes its tracking branch without a
+semantic deletion. The command matrix below separates these limitations from
+events emitted when Git supplies complete transactions.
 
 ## Compatibility
 

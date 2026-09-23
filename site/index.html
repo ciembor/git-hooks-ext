@@ -88,7 +88,7 @@ ghe reference-transaction &lt;state&gt; [--dry-run]</code></pre>
             </div>
             <b aria-hidden="true">→</b>
             <div>
-              <span>Event</span>
+              <span>Creation candidate</span>
               <code>branch-created topic</code>
             </div>
           </div>
@@ -132,6 +132,15 @@ ghe reference-transaction &lt;state&gt; [--dry-run]</code></pre>
 	              </tbody>
 	            </table>
 	          </div>
+	          <p>
+            <code>*-created</code> is a creation candidate, not proof that the
+            ref did not already exist. Git uses an all-zero old value both for
+            ref creation and for an update that does not require a particular
+            previous value. This bridge maps every <code>zero → value</code>
+            record to <code>*-created</code>, which is usually a creation.
+            Events run only after commit, so the ref already has its new value
+            and <code>git rev-parse</code> cannot distinguish the two cases.
+          </p>
 	          <h3>Fallback refs</h3>
 	          <div class="table-wrap">
 	            <table>
