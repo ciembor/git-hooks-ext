@@ -1,5 +1,5 @@
 pkgname=git-hooks-ext
-pkgver=0.4.0
+pkgver=0.5.0
 pkgrel=1
 pkgdesc='Semantic Git hooks for reference changes'
 arch=('x86_64')
@@ -8,7 +8,7 @@ license=('GPL-2.0-only')
 depends=('git>=2.29')
 makedepends=('gcc' 'make')
 source=("$url/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
-sha256sums=('07bee299ed4775198c4422a4975a068e09657fd3d571e97762d1e4e6d429e29a')
+sha256sums=('2e69cacb571fbc8da30ee30dd03e4ee3201ce3092a5afb7fa001e0f02fbe5530')
 
 build() {
   make -C "$srcdir"
