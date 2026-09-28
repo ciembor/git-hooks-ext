@@ -402,7 +402,7 @@ SH
 	(
 		cd "$repo"
 		"$bin" add branch-created create-env /bin/true
-		printf '%s\n' "$zero $one refs/heads/topic" | "$bin" reference-transaction committed >"$TEST_DIR/out" 2>"$TEST_DIR/err"
+		printf '%s\n' "$zero $one refs/heads/topic" | env PATH="$fakebin:$PATH" GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 "$bin" reference-transaction committed >"$TEST_DIR/out" 2>"$TEST_DIR/err"
 		test ! -s "$TEST_DIR/err"
 
 		"$bin" verbose on
