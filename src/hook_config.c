@@ -91,3 +91,13 @@ int configure_event_hook(const char *scope, const char *event,
 	free(command);
 	return status;
 }
+
+int configure_verbose(const char *scope, bool enabled)
+{
+	char *config[] = {
+		"git", "config", (char *)scope, "git-hooks-ext.verbose",
+		enabled ? "true" : "false", NULL
+	};
+
+	return run_git(config);
+}

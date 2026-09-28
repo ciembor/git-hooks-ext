@@ -10,6 +10,63 @@
 #include "coverage.h"
 #include "process.h"
 
+static bool verbose_enabled(void)
+{
+	char *value = process_read_line("git config --bool --get git-hooks-ext.verbose");
+	bool enabled = value && strcmp(value, "true") == 0;
+
+	free(value);
+	return enabled;
+}
+
+static void announce_hook(const char *event, const char *name)
+{
+	fprintf(stderr, "[git-hooks-ext] %s ➠ %s\n", event, name);
+}
+
+static void announce_config_hooks(const char *event)
+{
+	const char command[] =
+		"git config --get-regexp '^hook\\..*\\.event$' || test $? -eq 1";
+	const char prefix[] = "hook.";
+	const char suffix[] = ".event";
+	char *output;
+	char *line;
+	size_t output_len;
+
+	if (process_read_all(command, &output, &output_len))
+		return;
+	line = output;
+	while (*line) {
+		char *next = strchr(line, '\n');
+		char *separator = strchr(line, ' ');
+		size_t key_len;
+
+		if (next)
+			*next = '\0';
+		if (separator) {
+			*separator = '\0';
+			key_len = strlen(line);
+			if (strcmp(separator + 1, event) == 0 &&
+			    key_len > strlen(prefix) + strlen(suffix) &&
+			    strncmp(line, prefix, strlen(prefix)) == 0 &&
+			    strcmp(line + key_len - strlen(suffix), suffix) == 0) {
+				size_t name_len = key_len - strlen(prefix) - strlen(suffix);
+				char *name = strndup(line + strlen(prefix), name_len);
+
+				if (name) {
+					announce_hook(event, name);
+					free(name);
+				}
+			}
+		}
+		if (!next)
+			break;
+		line = next + 1;
+	}
+	free(output);
+}
+
 int run_git(char **argv)
 {
 	return process_run("git", argv);
@@ -114,7 +171,7 @@ static int git_hook_run_event(const char *event, size_t hook_argc,
 }
 
 static int run_legacy_hook(const char *legacy_event, size_t hook_argc,
-			   const char **hook_args, bool *ran)
+			   const char **hook_args, bool verbose, bool *ran)
 {
 	char *hook_path;
 	char **argv;
@@ -131,6 +188,8 @@ static int run_legacy_hook(const char *legacy_event, size_t hook_argc,
 		return 0;
 	}
 	*ran = true;
+	if (verbose)
+		announce_hook(legacy_event, legacy_event);
 
 	argv = calloc(2 + hook_argc, sizeof(*argv));
 	if (coverage_fail("GHE_TEST_LEGACY_CALLOC_FAIL")) {
@@ -160,6 +219,7 @@ int emit_hook_event(bool dry_run, const char *event,
 	size_t i;
 	int status;
 	bool ran_legacy;
+	bool verbose;
 
 	if (dry_run) {
 		printf("%s", event);
@@ -169,12 +229,15 @@ int emit_hook_event(bool dry_run, const char *event,
 		return 0;
 	}
 
-	status = run_legacy_hook(event, hook_argc, hook_args, &ran_legacy);
+	verbose = verbose_enabled();
+	status = run_legacy_hook(event, hook_argc, hook_args, verbose, &ran_legacy);
 	if (status || ran_legacy)
 		return status;
 
 	if (!config_hooks_supported())
 		return 0;
+	if (verbose)
+		announce_config_hooks(event);
 
 	status = git_hook_run_event(event, hook_argc, hook_args);
 	if (status)

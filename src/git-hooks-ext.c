@@ -25,6 +25,7 @@ static void usage(FILE *stream)
 		"       git-hooks-ext list [--local|--global|--system]\n"
 		"       git-hooks-ext show [--local|--global|--system] <name>\n"
 		"       git-hooks-ext remove [--local|--global|--system] <name>\n"
+		"       git-hooks-ext verbose [--local|--global|--system] <on|off>\n"
 		"       git-hooks-ext worktree <command> [args...]\n"
 		"       git-hooks-ext events\n"
 		"       git-hooks-ext --version\n");
@@ -265,6 +266,25 @@ static int cmd_list(int argc, char **argv)
 	return list_event_hooks(scope);
 }
 
+static int cmd_verbose(int argc, char **argv)
+{
+	const char *scope = "--local";
+	bool enabled;
+
+	if (argc > 0 && is_scope(argv[0])) {
+		scope = argv[0];
+		argc--;
+		argv++;
+	}
+	if (argc != 1 ||
+	    (strcmp(argv[0], "on") != 0 && strcmp(argv[0], "off") != 0)) {
+		usage(stderr);
+		return 2;
+	}
+	enabled = strcmp(argv[0], "on") == 0;
+	return configure_verbose(scope, enabled);
+}
+
 int main(int argc, char **argv)
 {
 	if (argc == 2 && strcmp(argv[1], "--version") == 0) {
@@ -297,6 +317,8 @@ int main(int argc, char **argv)
 		return cmd_hook_manage(argc - 2, argv + 2, show_event_hook);
 	if (strcmp(argv[1], "remove") == 0)
 		return cmd_hook_manage(argc - 2, argv + 2, remove_event_hook);
+	if (strcmp(argv[1], "verbose") == 0)
+		return cmd_verbose(argc - 2, argv + 2);
 	if (strcmp(argv[1], "events") == 0)
 		return cmd_events(argc - 2, argv + 2);
 	if (strcmp(argv[1], "worktree") == 0)

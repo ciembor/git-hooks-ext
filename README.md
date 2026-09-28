@@ -284,6 +284,22 @@ ghe remove announce-branch
 operate on one named event hook. These commands accept the same optional scope
 as `add`; they use the local repository configuration by default.
 
+To log hook dispatches, enable the optional `verbose` setting (disabled by
+default):
+
+```sh
+ghe verbose on
+# disable it again
+ghe verbose off
+```
+
+The setting also accepts `--global` or `--system`, like `add`. When enabled,
+each dispatched hook is announced on standard error:
+
+```text
+[git-hooks-ext] branch-created ➠ create-branch-env
+```
+
 ## Hook Arguments
 
 Reference create, update and delete hooks receive positional arguments:

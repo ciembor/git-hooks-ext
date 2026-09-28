@@ -60,6 +60,7 @@ ghe add [--local|--global|--system] &lt;event&gt; &lt;name&gt; &lt;command&gt; [
 ghe list [--local|--global|--system]
 ghe show [--local|--global|--system] &lt;name&gt;
 ghe remove [--local|--global|--system] &lt;name&gt;
+ghe verbose [--local|--global|--system] &lt;on|off&gt;
 ghe events
 ghe doctor
 ghe worktree &lt;command&gt; [args...]
@@ -260,6 +261,13 @@ ghe add branch-created announce-branch ./scripts/announce-branch</code></pre>
 ghe show announce-branch
 ghe remove announce-branch</code></pre>
           <p><code>list</code> prints each hook name, event and command. The commands use local configuration by default and accept <code>--local</code>, <code>--global</code> or <code>--system</code>. The technical bridge is not listed; use <code>install</code> and <code>uninstall</code> to manage it.</p>
+
+          <h3>Log hook dispatches</h3>
+          <pre><code>ghe verbose on
+# disable it again
+ghe verbose off</code></pre>
+          <p><code>verbose</code> is disabled by default. When enabled, it writes each hook dispatch to the same standard-error stream as Git's messages:</p>
+          <pre><code>[git-hooks-ext] branch-created ➠ create-branch-env</code></pre>
 
           <h3>Diagnose compatibility</h3>
           <pre><code>ghe doctor</code></pre>

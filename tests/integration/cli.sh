@@ -389,6 +389,32 @@ test_add_rejects_bad_args() {
 	)
 }
 
+test_verbose_is_disabled_by_default_and_announces_configured_hooks() {
+	create_repo
+	create_fake_git <<'SH'
+#!/bin/sh
+if test "$1 $2" = "hook run"; then
+	exit 0
+fi
+exec /usr/bin/git "$@"
+SH
+
+	(
+		cd "$repo"
+		"$bin" add branch-created create-env /bin/true
+		printf '%s\n' "$zero $one refs/heads/topic" | "$bin" reference-transaction committed >"$TEST_DIR/out" 2>"$TEST_DIR/err"
+		test ! -s "$TEST_DIR/err"
+
+		"$bin" verbose on
+		test "$(git config --local --get git-hooks-ext.verbose)" = true
+		printf '%s\n' "$zero $one refs/heads/topic" | env PATH="$fakebin:$PATH" GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 "$bin" reference-transaction committed >"$TEST_DIR/out" 2>"$TEST_DIR/err"
+		grep -Fqx '[git-hooks-ext] branch-created ➠ create-env' "$TEST_DIR/err"
+
+		"$bin" verbose off
+		test "$(git config --local --get git-hooks-ext.verbose)" = false
+	)
+}
+
 test_main_rejects_bad_args() {
 	assert_fails "$bin" >"$TEST_DIR/out" 2>"$TEST_DIR/err"
 	assert_fails "$bin" wat >"$TEST_DIR/out2" 2>"$TEST_DIR/err2"
@@ -425,5 +451,6 @@ register_cli_tests() {
 	test_expect_success "preserves quoted commands in list and show" test_list_and_show_preserve_quoted_commands
 	test_expect_success "rejects invalid hook configuration commands" test_hook_configuration_commands_reject_invalid_arguments
 	test_expect_success "rejects bad add args" test_add_rejects_bad_args
+	test_expect_success "configures verbose hook dispatch logging" test_verbose_is_disabled_by_default_and_announces_configured_hooks
 	test_expect_success "rejects bad top-level args" test_main_rejects_bad_args
 }
