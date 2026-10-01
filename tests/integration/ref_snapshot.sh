@@ -63,6 +63,8 @@ test_snapshot_recovers_symbolic_values() {
 		"$bin" reference-transaction prepared <"$TEST_DIR/transaction"
 		git -c core.hooksPath=/dev/null update-ref --no-deref HEAD "$oid"
 		"$bin" reference-transaction committed <"$TEST_DIR/transaction"
+		# Keep the same parent shell for both manually simulated hook phases.
+		:
 	)
 	assert_file_equals "head-updated|HEAD|HEAD|ref:refs/heads/main|$oid
 head-detached|HEAD|HEAD|ref:refs/heads/main|$oid" "$log"

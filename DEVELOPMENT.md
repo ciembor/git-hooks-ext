@@ -204,7 +204,7 @@ sudo dnf install ./git-hooks-ext-0.6.0-1.fc44.*.rpm
 # Arch Linux
 sudo pacman -U ./git-hooks-ext-0.6.0-1-x86_64.pkg.tar.zst
 # Alpine (verify the release checksum first; no trusted APK repository yet)
-sudo apk add --allow-untrusted ./git-hooks-ext-0.6.0-r0-alpine3.24-*.apk
+sudo apk add --allow-untrusted ./git-hooks-ext-0.6.0-r0-*.apk
 ```
 
 Alpine packages are signed with a disposable build key; that key is not added

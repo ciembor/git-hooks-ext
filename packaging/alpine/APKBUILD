@@ -25,5 +25,5 @@ package() {
 }
 
 sha512sums="
-872e7093e92e2dbe71b8c3b5a136229d8b30cfd561ecfcad94feded0a1939074da81e4dd7b3a2669da5708307b2076d1b5c1c112ffc49fd7524aaf1873b4545e  git-hooks-ext-0.6.0.tar.gz
+7d59de13daccd3ec37baeaad6634cb28d5bfd2b83b39f03ac57331adccdd80ee69076b76a82fd2ccf653d2c8ef28eeb5c5dce569b5eb0709c84cefedaf8e41bb  git-hooks-ext-0.6.0.tar.gz
 "
