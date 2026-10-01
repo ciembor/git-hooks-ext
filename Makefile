@@ -16,7 +16,7 @@ MUTATION_SANITIZERS := -fsanitize=address,undefined -fno-sanitize-recover=all -f
 
 BIN := git-hooks-ext
 SRC := src/git-hooks-ext.c src/doctor.c src/git_runner.c src/process.c src/hook_install.c src/hook_manage.c \
-	src/hook_config.c src/shell_command.c src/ref_events.c src/ref_update.c \
+	src/hook_config.c src/shell_command.c src/ref_events.c src/ref_update.c src/ref_snapshot.c \
 	src/worktree.c
 HEADERS := $(wildcard src/*.h)
 LINT_SRC := $(SRC) tests/unit/ref_update_unit.c tests/unit/runtime_unit.c
@@ -159,7 +159,7 @@ coverage:
 	$(LLVM_COV) report "$(COVERAGE_BIN)" -instr-profile="$(COVERAGE_PROFDATA)" $(SRC) | tee "$(COVERAGE_DIR)/report.txt"
 	$(LLVM_COV) show "$(COVERAGE_BIN)" -instr-profile="$(COVERAGE_PROFDATA)" $(SRC) | \
 		awk -F'|' '$$1 ~ /^[[:space:]]*[0-9]+$$/ && $$2 ~ /^[[:space:]]*0$$/ { print "coverage instrumentation gap: " $$0 > "/dev/stderr" }'
-	awk '/^TOTAL/ { if ($$7 != "100.00%") exit 1 }' "$(COVERAGE_DIR)/report.txt"
+	awk '/^TOTAL/ { if ($$4 != "100.00%" || $$7 != "100.00%" || $$10 != "100.00%") exit 1 }' "$(COVERAGE_DIR)/report.txt"
 	printf '%s\n' '100.00%' > "$(COVERAGE_DIR)/source-line-coverage.txt"
 
 coverage-html: coverage

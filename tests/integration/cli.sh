@@ -70,10 +70,13 @@ SH
 		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=2.27.0 "$bin" doctor >"$TEST_DIR/old-doctor"
 		grep -Eq '^branch-created +requires Git 2.28\+$' "$TEST_DIR/old-doctor"
 		grep -Eq '^branch-deleted +requires Git 2.28\+$' "$TEST_DIR/old-doctor"
+		grep -Eq '^head-updated +requires Git 2.28\+$' "$TEST_DIR/old-doctor"
 		grep -Eq '^Ref backend: +files$' "$TEST_DIR/old-doctor"
 
 		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=2.28.0 "$bin" doctor >"$TEST_DIR/2.28-doctor"
 		grep -Eq '^tag-deleted +supported$' "$TEST_DIR/2.28-doctor"
+		grep -Eq '^head-updated +supported$' "$TEST_DIR/2.28-doctor"
+		grep -Eq '^head-detached +supported$' "$TEST_DIR/2.28-doctor"
 
 		env PATH="$fakebin:$PATH" DOCTOR_GIT_VERSION=2.54.0 "$bin" doctor >"$TEST_DIR/new-doctor"
 		grep -Eq '^Ref backend: +reftable$' "$TEST_DIR/new-doctor"
@@ -396,6 +399,10 @@ test_verbose_is_disabled_by_default_and_announces_configured_hooks() {
 if test "$1 $2" = "hook run"; then
 	exit 0
 fi
+if test "$1 $2" = 'config --get-regexp' && test -n "${GHE_TEST_VERBOSE_FINAL_LINE:-}"; then
+	printf '%s' 'hook.create-env.event branch-created'
+	exit 0
+fi
 exec /usr/bin/git "$@"
 SH
 
@@ -409,6 +416,11 @@ SH
 		test "$(git config --local --get git-hooks-ext.verbose)" = true
 		printf '%s\n' "$zero $one refs/heads/topic" | env PATH="$fakebin:$PATH" GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 "$bin" reference-transaction committed >"$TEST_DIR/out" 2>"$TEST_DIR/err"
 		grep -Fqx '[git-hooks-ext] branch-created ➠ create-env' "$TEST_DIR/err"
+		printf '%s\n' "$zero $one refs/heads/topic" | env PATH="$fakebin:$PATH" GHE_TEST_VERBOSE_FINAL_LINE=1 GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 "$bin" reference-transaction committed >"$TEST_DIR/out" 2>"$TEST_DIR/err"
+		grep -Fqx '[git-hooks-ext] branch-created ➠ create-env' "$TEST_DIR/err"
+		if coverage_only; then
+			printf '%s\n' "$zero $one refs/heads/topic" | env PATH="$fakebin:$PATH" GHE_TEST_READ_ALL_POPEN_FAIL=1 GHE_TEST_CONFIG_HOOKS_SUPPORTED=1 "$bin" reference-transaction committed
+		fi
 
 		"$bin" verbose off
 		test "$(git config --local --get git-hooks-ext.verbose)" = false

@@ -36,6 +36,8 @@ can be reviewed and staged; run `git add ...` and commit again.
 - `process.c`: process execution and dynamically sized output line reading.
 - `git_runner.c`: Git hook paths and legacy/config-based event dispatch.
 - `ref_update.c` / `ref_events.c`: ref parsing and semantic event detection.
+- `ref_snapshot.c`: previous ref values captured at `prepared`, matched to the
+  Git parent process and exact transaction payload, and restored at `committed`.
 - `worktree.c`: worktree command forwarding, state parsing and lifecycle events.
 
 Hook paths remain dynamically allocated through installation and execution.
@@ -66,10 +68,11 @@ outside `refs/*` and worktree-qualified aliases.
 supplied transactions, including root refs and symbolic `HEAD` changes; its
 synthetic rename cases are not evidence
 that `git branch -m` emits a complete transaction. Git versions where regular
-branch/tag deletions have unusable payloads are checked by the compatibility
-matrix instead of being treated as passing event delivery. The matrix also
-checks real `fetch`, `remote prune`, `remote rename`, `notes` and `stash`
-commands, including cases where Git emits a misleading event or none at all.
+branch/tag deletions have unusable payloads are checked independently by the
+raw compatibility probe. The end-to-end matrix asserts the repaired events
+after snapshot recovery, including real `remote prune`, notes, stash and HEAD
+transitions. `tests/integration/ref_snapshot.sh` checks abort cleanup, packed
+refs, parallel Git processes, corrupt snapshots and storage failures.
 
 `tests/compat/reference-transaction.sh` probes whether an installed Git emits
 usable payloads for real branch and tag commands. To reproduce a historical
@@ -172,7 +175,7 @@ Native package recipes are available for:
 - Alpine 3.24: `packaging/alpine/APKBUILD` (APK, x86-64 / AArch64).
 
 Native binary packages and recipes are attached to the
-[v0.5.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.5.0).
+[v0.6.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.6.0).
 Download the file for your distribution and architecture (`uname -m`), plus
 `SHA256SUMS`, and verify it with `sha256sum --check --ignore-missing SHA256SUMS`.
 The package installation matrix covers 11 distribution/architecture
@@ -197,11 +200,11 @@ Install a downloaded native package with its distribution's package manager:
 
 ```sh
 # Fedora
-sudo dnf install ./git-hooks-ext-0.5.0-1.fc44.*.rpm
+sudo dnf install ./git-hooks-ext-0.6.0-1.fc44.*.rpm
 # Arch Linux
-sudo pacman -U ./git-hooks-ext-0.5.0-1-x86_64.pkg.tar.zst
+sudo pacman -U ./git-hooks-ext-0.6.0-1-x86_64.pkg.tar.zst
 # Alpine (verify the release checksum first; no trusted APK repository yet)
-sudo apk add --allow-untrusted ./git-hooks-ext-0.5.0-r0-alpine3.24-*.apk
+sudo apk add --allow-untrusted ./git-hooks-ext-0.6.0-r0-alpine3.24-*.apk
 ```
 
 Alpine packages are signed with a disposable build key; that key is not added
@@ -211,7 +214,7 @@ No DNF, pacman or APK update repository is configured by these downloads.
 ### Package Builds
 
 `VERSION` is the single build/package version; `git-hooks-ext --version`
-reports it. This release is `0.5.0`, licensed under GPL-2.0-only.
+reports it. This release is `0.6.0`, licensed under GPL-2.0-only.
 
 #### Homebrew (local macOS)
 
@@ -224,7 +227,7 @@ brew install --build-from-source local/git-hooks-ext/git-hooks-ext
 ```
 
 The generated tap is `dist/homebrew-git-hooks-ext/`, and the matching source
-archive is `dist/git-hooks-ext-0.5.0.tar.gz`. Its formula contains an absolute
+archive is `dist/git-hooks-ext-0.6.0.tar.gz`. Its formula contains an absolute
 local source URL and SHA-256 checksum; keep the archive available. This is a
 local tap, not a published Homebrew repository. Publishing requires replacing
 the local URL with a permanent release URL and adding the project homepage.
@@ -241,7 +244,7 @@ On Debian, install `build-essential`, `dpkg-dev` and `git`, then:
 
 ```sh
 make package-deb
-sudo apt install ./dist/debian/git-hooks-ext_0.5.0-1_*.deb
+sudo apt install ./dist/debian/git-hooks-ext_0.6.0-1_*.deb
 ```
 
 The `.deb` uses the build system's architecture, installs to `/usr/bin`, and

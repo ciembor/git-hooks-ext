@@ -7,7 +7,9 @@ test_install_writes_config_based_bridge() {
 		test "$(git config --local hook.git-hooks-ext.event)" = \
 			"reference-transaction"
 		test "$(git config --local hook.git-hooks-ext.command)" = \
-			"git-hooks-ext reference-transaction"
+			"exec git-hooks-ext reference-transaction"
+		"$bin" doctor >"$TEST_DIR/doctor"
+		grep -Eq '^Bridge installed: +yes \(config-based\)$' "$TEST_DIR/doctor"
 	)
 }
 

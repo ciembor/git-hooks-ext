@@ -87,13 +87,11 @@ Supported ref events are grouped by purpose:
   </tbody>
 </table>
 
-`*-created` is a creation candidate, not an independent proof that the ref did
-not exist. Git uses an all-zero old value both when it creates a ref and when
-an update does not require a particular previous value. This bridge maps every
-`zero -> value` record to `*-created`, which is usually a creation. It runs
-only at the `committed` state, however, so the ref already has its new value
-and cannot be checked with `git rev-parse` to distinguish those cases. Hooks
-that need that distinction must treat `*-created` as a candidate.
+Git may supply an all-zero old value even when a ref already exists. The bridge
+reads that ref during `prepared` and uses its previous value at `committed`.
+This distinguishes creation from updates made by notes, stash and other forced
+updates. If the snapshot is unavailable, `*-created` remains a creation
+candidate. `--dry-run` classifies only the supplied input, without snapshots.
 
 The `worktree-ref-*` events describe updates under `refs/worktree/*`. They are
 separate from the lifecycle events below.
@@ -182,14 +180,14 @@ it does not depend on local files or paths.
 ### Debian 12 (AMD64 / ARM64)
 
 Download the package and checksums from the
-[v0.5.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.5.0):
+[v0.6.0 release](https://github.com/ciembor/git-hooks-ext/releases/tag/v0.6.0):
 
 ```sh
 arch=$(dpkg --print-architecture)
-curl -fLO "https://github.com/ciembor/git-hooks-ext/releases/download/v0.5.0/git-hooks-ext_0.5.0-1_${arch}.deb"
-curl -fLO https://github.com/ciembor/git-hooks-ext/releases/download/v0.5.0/SHA256SUMS
+curl -fLO "https://github.com/ciembor/git-hooks-ext/releases/download/v0.6.0/git-hooks-ext_0.6.0-1_${arch}.deb"
+curl -fLO https://github.com/ciembor/git-hooks-ext/releases/download/v0.6.0/SHA256SUMS
 sha256sum --check --ignore-missing SHA256SUMS
-sudo apt install "./git-hooks-ext_0.5.0-1_${arch}.deb"
+sudo apt install "./git-hooks-ext_0.6.0-1_${arch}.deb"
 ```
 
 Packages are available for AMD64 (Intel/AMD 64-bit) and ARM64 (AArch64).
@@ -340,6 +338,12 @@ when none was supplied:
 
 By default, events are emitted only for the `committed` transaction state. This
 keeps user hooks post-factum and avoids aborting Git ref transactions.
+The `prepared` phase saves previous ref values in a private
+`git-hooks-ext-state` directory resolved through `git rev-parse --git-path`.
+Snapshots are isolated by Git process and transaction payload, consumed before
+event dispatch, and discarded on `aborted`. A snapshot failure falls back to
+the supplied payload and does not reject the transaction. Re-run `ghe install`
+after upgrading this extension so config-based bridges use the current command.
 
 ## Notes
 
@@ -350,10 +354,10 @@ and creation have a unique match within the same ref namespace.
 
 Events depend on Git providing a usable `reference-transaction` payload. The
 hook is available from Git 2.28, but the tested versions do not report both
-sides of `git branch -m`. From Git 2.31 through 2.55, ordinary `git branch -D`
-and `git tag -d` report `zero -> zero`, so they cannot produce semantic delete
-events through this bridge. Creation and explicit `git update-ref -d` remain
-usable. See the [Git compatibility matrix](#compatibility) for tested
+sides of `git branch -m`. Ordinary deletions may report `zero -> zero`; the
+bridge recovers the previous value from its snapshot and emits a deletion only
+after confirming that the ref is absent. This also avoids false deletions
+during packed-ref maintenance. See the [Git compatibility matrix](#compatibility) for tested
 versions, ref backends and the reproducible probe.
 
 References not covered by a named namespace still produce `ref-created`,
@@ -371,9 +375,10 @@ changing to a symbolic value also produces `head-attached`; a symbolic value
 changing to a known direct value produces `head-detached`; and a change between
 different symbolic targets produces `head-switched`. Git can report an all-zero
 old value for ordinary `git symbolic-ref`, checkout and even explicit
-`git update-ref --no-deref HEAD` operations when `HEAD` already exists. In
-that case the extension emits only `head-updated`:
-it cannot safely infer the previous attachment state from a zero value.
+`git update-ref --no-deref HEAD` operations when `HEAD` already exists.
+The snapshot preserves its symbolic target or direct OID, allowing the bridge
+to emit attachment, detachment and switch events. Without a usable snapshot,
+an unknown previous attachment state produces only `head-updated`.
 
 `remote-head-*` uses the first path component after `refs/remotes/` as the
 remote name. Remote names containing `/` are ambiguous with branch names
@@ -382,18 +387,20 @@ remote branches by this classifier.
 
 Other ref commands can provide incomplete information too. In the tested Git
 versions, `git notes append`, `git notes remove` and a second `git stash push`
-report a zero old value even though those refs already exist; the bridge
-therefore emits another `note-created` or `stash-created` creation candidate
-instead of an update. `git remote prune` removes its tracking branch without a
-semantic deletion. The command matrix below separates these limitations from
-events emitted when Git supplies complete transactions.
+report a zero old value even though those refs already exist. Snapshots recover
+their previous OIDs and produce `note-updated` and `stash-updated`.
+The same mechanism recovers deletions from `git remote prune` and, on Git 2.54+,
+`git remote set-head -d`. Commands that do not invoke a ref transaction remain
+unobservable through this bridge. In particular, branch renames still omit
+their destination, and plain `git worktree` has no complete lifecycle hooks.
 
 ## Compatibility
 
 ### Commands and emitted events
 
-Measured on 2026-09-19. The detailed CI matrix tests Git 2.27–2.55, Apple Git
-2.39.3 and the files and reftable backends. Git versions `< 2.28` do not
+The raw Git matrix was measured on 2026-09-19. Snapshot recovery was validated
+on 2026-10-01 with Apple Git 2.39.3 and Git 2.55 using files and reftable.
+The compatibility workflow tests Git 2.27–2.55. Git versions `< 2.28` do not
 provide the required `reference-transaction` hook.
 
 This table lists each tested command, its expected event and the Git versions
@@ -409,35 +416,35 @@ does not run these hooks.
   <tbody>
     <tr><td><code>branch-created</code></td><td><code>git branch topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>branch-updated</code></td><td><code>git commit</code></td><td>Git <code>≥ 2.28</code></td></tr>
-    <tr><td><code>branch-deleted</code></td><td><code>git branch -D topic</code></td><td><code>2.28 ≤ Git ≤ 2.30</code> <a href="#git-bugs">²</a></td></tr>
+    <tr><td><code>branch-deleted</code></td><td><code>git branch -D topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>branch-deleted</code></td><td><code>git update-ref -d refs/heads/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>branch-renamed</code></td><td><code>git branch -m old new</code></td><td>❌ <a href="#git-bugs">¹</a></td></tr>
     <tr><td><code>branch-renamed</code></td><td><code>git update-ref --stdin</code> (heads)</td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>remote-branch-created</code></td><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>remote-branch-updated</code></td><td><code>git fetch origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
-    <tr><td><code>remote-branch-deleted</code></td><td><code>git remote prune origin</code></td><td>❌ <a href="#git-bugs">²</a></td></tr>
+    <tr><td><code>remote-branch-deleted</code></td><td><code>git remote prune origin</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>remote-branch-deleted</code></td><td><code>git update-ref -d refs/remotes/origin/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>remote-branch-renamed</code></td><td><code>git remote rename origin upstream</code></td><td>Git <code>≥ 2.55</code></td></tr>
     <tr><td><code>remote-branch-renamed</code></td><td><code>git update-ref --stdin</code> (remotes)</td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>tag-created</code></td><td><code>git tag v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>tag-updated</code></td><td><code>git tag -f v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
-    <tr><td><code>tag-deleted</code></td><td><code>git tag -d v1</code></td><td><code>2.28 ≤ Git ≤ 2.30</code> <a href="#git-bugs">²</a></td></tr>
+    <tr><td><code>tag-deleted</code></td><td><code>git tag -d v1</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>tag-deleted</code></td><td><code>git update-ref -d refs/tags/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>tag-renamed</code></td><td><code>git update-ref --stdin</code> (tags)</td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>stash-created</code></td><td>first <code>git stash push</code></td><td>Git <code>≥ 2.28</code></td></tr>
-    <tr><td><code>stash-updated</code></td><td>second <code>git stash push</code></td><td>❌</td></tr>
+    <tr><td><code>stash-updated</code></td><td>second <code>git stash push</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>stash-updated</code></td><td><code>git update-ref refs/stash</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>stash-deleted</code></td><td><code>git stash clear</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>note-created</code></td><td><code>git notes add</code></td><td>Git <code>≥ 2.28</code></td></tr>
-    <tr><td><code>note-updated</code></td><td><code>git notes append</code></td><td>❌</td></tr>
-    <tr><td><code>note-updated</code></td><td><code>git notes remove</code></td><td>❌</td></tr>
+    <tr><td><code>note-updated</code></td><td><code>git notes append</code></td><td>Git <code>≥ 2.28</code></td></tr>
+    <tr><td><code>note-updated</code></td><td><code>git notes remove</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>note-updated</code></td><td><code>git update-ref refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>note-deleted</code></td><td><code>git update-ref -d refs/notes/topic</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>note-renamed</code></td><td><code>git update-ref --stdin</code> (notes)</td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>remote-head-created</code></td><td><code>git remote set-head origin main</code></td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>remote-head-created</code></td><td><code>git remote set-head origin topic</code> after fetch</td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>remote-head-updated</code></td><td><code>git update-ref --stdin</code> (<code>symref-update</code>)</td><td>Git <code>≥ 2.54</code></td></tr>
-    <tr><td><code>remote-head-deleted</code></td><td><code>git remote set-head -d origin</code></td><td>❌</td></tr>
+    <tr><td><code>remote-head-deleted</code></td><td><code>git remote set-head -d origin</code></td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>remote-head-deleted</code></td><td><code>git update-ref --stdin</code> (<code>symref-delete</code>)</td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>replace-created</code></td><td><code>git replace &lt;old&gt; &lt;new&gt;</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>replace-updated</code></td><td><code>git replace -f &lt;old&gt; &lt;new&gt;</code></td><td>Git <code>≥ 2.28</code></td></tr>
@@ -457,7 +464,7 @@ does not run these hooks.
     <tr><td><code>head-switched</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>remote-head-created</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
     <tr><td><code>root-ref-*</code></td><td>symbolic/ref-backend transaction</td><td>Git <code>≥ 2.54</code></td></tr>
-    <tr><td><code>head-detached</code></td><td><code>git checkout --detach</code></td><td>❌</td></tr>
+    <tr><td><code>head-detached</code></td><td><code>git checkout --detach</code></td><td>Git <code>≥ 2.28</code></td></tr>
     <tr><td><code>worktree-created</code></td><td><code>ghe worktree add</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
     <tr><td><code>worktree-removed</code></td><td><code>ghe worktree remove</code></td><td>Git <code>≥ 2.39.3</code></td></tr>
     <tr><td><code>worktree-moved</code></td><td><code>ghe worktree move</code></td><td>Git <code>≥ 2.39.3</code></td></tr>

@@ -44,7 +44,7 @@
             <span class="manual-label">Contributor guide</span>
             <h1>Development</h1>
           </div>
-          <span class="version">0.5.0</span>
+          <span class="version">0.6.0</span>
         </header>
 
         <section id="build">
@@ -78,6 +78,7 @@ make test</code></pre>
                 <tr><td><code>process.c</code></td><td>Process execution and output reading</td></tr>
                 <tr><td><code>git_runner.c</code></td><td>Hook paths and event dispatch</td></tr>
                 <tr><td><code>ref_update.c</code>, <code>ref_events.c</code></td><td>Ref parsing and semantic event detection</td></tr>
+                <tr><td><code>ref_snapshot.c</code></td><td>Recover missing old ref values between prepared and committed transactions</td></tr>
                 <tr><td><code>worktree.c</code></td><td>Worktree command forwarding and lifecycle events</td></tr>
               </tbody>
             </table>
@@ -93,6 +94,7 @@ make test</code></pre>
             prints TAP-style results. The same runner is used by the regular,
             coverage, and mutation suites.
           </p>
+          <p>Snapshot integration tests cover deletions, notes and stash updates, HEAD transitions, concurrent transactions, malformed state, and allocation or I/O failures.</p>
           <p>
             The <a href="https://github.com/ciembor/git-hooks-ext/blob/main/tests/compat/README.md#commands-and-emitted-events">command compatibility matrix</a>
             checks every event against real Git commands across selected releases,
@@ -171,6 +173,6 @@ make test-package-alpine</code></pre>
       </article>
     </main>
 
-    <footer><span>git-hooks-ext 0.5.0</span><span>GPL-2.0-only</span></footer>
+    <footer><span>git-hooks-ext 0.6.0</span><span>GPL-2.0-only</span></footer>
   </body>
 </html>

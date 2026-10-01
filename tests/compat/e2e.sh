@@ -30,7 +30,7 @@ tag_create=$4
 tag_delete=$5
 update_ref_delete=$6
 
-PATH="$git_dir:$PATH"
+PATH="$git_dir:$(dirname "$helper_bin"):$PATH"
 export PATH
 if test -f "$git_dir/Makefile"; then
 	GIT_EXEC_PATH=$git_dir
@@ -166,9 +166,22 @@ else
 fi
 check_events branch-update "$want"
 
+prepare_repo command-head-detach
+for event in head-updated head-detached; do
+	ln -s record-event "$repo/.git/hooks/$event"
+done
+"$git_bin" -C "$repo" checkout -q --detach
+if test "$branch_create" = yes; then
+	want="head-updated|HEAD|HEAD|ref:refs/heads/main|$oid
+head-detached|HEAD|HEAD|ref:refs/heads/main|$oid"
+else
+	want=
+fi
+check_events command-head-detach "$want"
+
 prepare_repo branch-delete
 "$git_bin" -C "$repo" branch -D topic >/dev/null
-if test "$branch_delete" = yes; then
+if test "$branch_create" = yes; then
 	want="branch-deleted|topic|refs/heads/topic|$oid|$zero"
 else
 	want=
@@ -209,7 +222,7 @@ check_events tag-update "$want"
 
 prepare_repo tag-delete
 "$git_bin" -C "$repo" tag -d v1 >/dev/null
-if test "$tag_delete" = yes; then
+if test "$branch_create" = yes; then
 	want="tag-deleted|v1|refs/tags/v1|$oid|$zero"
 else
 	want=
@@ -266,7 +279,12 @@ check_events command-remote-update "$want"
 use_event_log command-remote-prune
 "$git_bin" -C "$repo" remote prune origin >/dev/null
 ! "$git_bin" -C "$repo" show-ref --verify --quiet refs/remotes/origin/main
-check_events command-remote-prune ''
+if test "$branch_create" = yes; then
+	want="remote-branch-deleted|origin/main|refs/remotes/origin/main|$new_oid|$zero"
+else
+	want=
+fi
+check_events command-remote-prune "$want"
 
 prepare_repo command-remote-rename
 remote="$root/rename.git"
@@ -296,20 +314,22 @@ fi
 check_events command-note-create "$want"
 
 use_event_log command-note-append
+old_note_oid=$note_oid
 "$git_bin" -C "$repo" notes append -m second HEAD
 note_oid=$("$git_bin" -C "$repo" rev-parse refs/notes/commits)
 if test "$branch_create" = yes; then
-	want="note-created|commits|refs/notes/commits|$zero|$note_oid"
+	want="note-updated|commits|refs/notes/commits|$old_note_oid|$note_oid"
 else
 	want=
 fi
 check_events command-note-append "$want"
 
 use_event_log command-note-remove
+old_note_oid=$note_oid
 "$git_bin" -C "$repo" notes remove HEAD >/dev/null
 note_oid=$("$git_bin" -C "$repo" rev-parse refs/notes/commits)
 if test "$branch_create" = yes; then
-	want="note-created|commits|refs/notes/commits|$zero|$note_oid"
+	want="note-updated|commits|refs/notes/commits|$old_note_oid|$note_oid"
 else
 	want=
 fi
@@ -332,10 +352,11 @@ check_events command-stash-create "$want"
 
 printf 'second\n' >>"$repo/tracked"
 use_event_log command-stash-update
+old_stash_oid=$stash_oid
 "$git_bin" -C "$repo" stash push -qm second
 stash_oid=$("$git_bin" -C "$repo" rev-parse refs/stash)
 if test "$branch_create" = yes; then
-	want="stash-created|stash|refs/stash|$zero|$stash_oid"
+	want="stash-updated|stash|refs/stash|$old_stash_oid|$stash_oid"
 else
 	want=
 fi
@@ -358,6 +379,10 @@ remote="$root/remote-head.git"
 "$git_bin" -C "$repo" push -q origin HEAD:main
 "$git_bin" -C "$repo" fetch -q origin
 use_event_log command-remote-head-create
+if "$git_bin" -C "$repo" symbolic-ref --quiet refs/remotes/origin/HEAD >/dev/null; then
+	"$git_bin" -C "$repo" symbolic-ref --delete refs/remotes/origin/HEAD
+	use_event_log command-remote-head-create
+fi
 "$git_bin" -C "$repo" remote set-head origin main
 if test "$branch_create" = yes && test "$git_minor" -ge 54; then
 	want="remote-head-created|origin/HEAD|refs/remotes/origin/HEAD|$zero|ref:refs/remotes/origin/main"
@@ -372,7 +397,7 @@ check_events command-remote-head-create "$want"
 use_event_log command-remote-head-update
 "$git_bin" -C "$repo" remote set-head origin topic
 if test "$branch_create" = yes && test "$git_minor" -ge 54; then
-	want="remote-head-created|origin/HEAD|refs/remotes/origin/HEAD|$zero|ref:refs/remotes/origin/topic"
+	want="remote-head-updated|origin/HEAD|refs/remotes/origin/HEAD|ref:refs/remotes/origin/main|ref:refs/remotes/origin/topic"
 else
 	want=
 fi
@@ -380,7 +405,12 @@ check_events command-remote-head-update "$want"
 
 use_event_log command-remote-head-delete
 "$git_bin" -C "$repo" remote set-head -d origin
-check_events command-remote-head-delete ''
+if test "$branch_create" = yes && test "$git_minor" -ge 54; then
+	want="remote-head-deleted|origin/HEAD|refs/remotes/origin/HEAD|ref:refs/remotes/origin/topic|$zero"
+else
+	want=
+fi
+check_events command-remote-head-delete "$want"
 
 prepare_repo command-replace-create
 base_oid=$oid
@@ -567,13 +597,15 @@ if test "$git_minor" -ge 54; then
 	"$git_bin" -C "$repo" symbolic-ref HEAD refs/heads/topic
 	printf 'option no-deref\nsymref-update HEAD refs/heads/main ref refs/heads/topic\n' |
 		"$git_bin" -C "$repo" update-ref --stdin
-	check_events symbolic-head "head-updated|HEAD|HEAD|$zero|ref:refs/heads/topic
+	check_events symbolic-head "head-updated|HEAD|HEAD|ref:refs/heads/main|ref:refs/heads/topic
+head-switched|HEAD|HEAD|ref:refs/heads/main|ref:refs/heads/topic
 head-updated|HEAD|HEAD|ref:refs/heads/topic|ref:refs/heads/main
 head-switched|HEAD|HEAD|ref:refs/heads/topic|ref:refs/heads/main"
 
 	use_event_log symbolic-head-detach
 	"$git_bin" -C "$repo" checkout -q --detach
-	check_events symbolic-head-detach "head-updated|HEAD|HEAD|$zero|$oid"
+	check_events symbolic-head-detach "head-updated|HEAD|HEAD|ref:refs/heads/main|$oid
+head-detached|HEAD|HEAD|ref:refs/heads/main|$oid"
 
 	use_event_log symbolic-head-attach
 	printf 'option no-deref\nsymref-update HEAD refs/heads/topic oid %s\n' "$oid" |

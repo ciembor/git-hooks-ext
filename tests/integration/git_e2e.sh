@@ -88,8 +88,10 @@ test_real_git_symbolic_head_changes() {
 			GHE_EVENT_LOG="$log" git update-ref --stdin
 	)
 	assert_file_equals \
-		"head-updated|HEAD|HEAD|$zero|ref:refs/heads/topic
-head-updated|HEAD|HEAD|$zero|$old
+		"head-updated|HEAD|HEAD|ref:refs/heads/main|ref:refs/heads/topic
+head-switched|HEAD|HEAD|ref:refs/heads/main|ref:refs/heads/topic
+head-updated|HEAD|HEAD|ref:refs/heads/topic|$old
+head-detached|HEAD|HEAD|ref:refs/heads/topic|$old
 head-updated|HEAD|HEAD|$old|ref:refs/heads/main
 head-attached|HEAD|HEAD|$old|ref:refs/heads/main
 head-updated|HEAD|HEAD|ref:refs/heads/main|ref:refs/heads/topic
@@ -97,11 +99,7 @@ head-switched|HEAD|HEAD|ref:refs/heads/main|ref:refs/heads/topic" \
 		"$log"
 }
 
-test_real_git_does_not_infer_unknown_head_detach() {
-	git_minor=$(git --version | sed -n 's/^git version [0-9]*\.\([0-9]*\)\..*/\1/p')
-	if test -z "$git_minor" || test "$git_minor" -lt 54; then
-		test_skip "requires Git 2.54 or later symbolic ref transactions"
-	fi
+test_real_git_recovers_head_detach() {
 	setup_real_git_events
 	oid=$(git -C "$repo" rev-parse HEAD)
 	(
@@ -111,7 +109,8 @@ test_real_git_does_not_infer_unknown_head_detach() {
 		GHE_EVENT_LOG="$log" git update-ref --no-deref HEAD "$oid"
 	)
 	assert_file_equals \
-		"head-updated|HEAD|HEAD|$zero|$oid" \
+		"head-updated|HEAD|HEAD|ref:refs/heads/main|$oid
+head-detached|HEAD|HEAD|ref:refs/heads/main|$oid" \
 		"$log"
 }
 
@@ -373,7 +372,7 @@ register_git_e2e_tests() {
 	test_expect_success "real Git emits notes and stash creation events" test_real_git_notes_and_stash_creation
 	test_expect_success "real Git classifies additional ref namespaces" test_real_git_additional_ref_namespaces
 	test_expect_success "real Git emits symbolic HEAD transitions" test_real_git_symbolic_head_changes
-	test_expect_success "real Git does not infer HEAD detach from an unknown old value" test_real_git_does_not_infer_unknown_head_detach
+	test_expect_success "real Git recovers HEAD detach from the pre-transaction ref" test_real_git_recovers_head_detach
 	test_expect_success "real Git emits symbolic remote HEAD" test_real_git_symbolic_remote_head
 	test_expect_success "real Git emits root ref transitions" test_real_git_root_ref_changes
 	test_expect_success "real Git emits nonstandard and worktree-alias refs" test_real_git_nonstandard_ref_names

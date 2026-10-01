@@ -55,7 +55,7 @@ static int configure_hook(const char *scope, const char *name,
 int configure_hook_bridge(const char *scope)
 {
 	return configure_hook(scope, "git-hooks-ext", "reference-transaction",
-			      "git-hooks-ext reference-transaction");
+			      "exec git-hooks-ext reference-transaction");
 }
 
 static int remove_config_key(const char *scope, char *key)

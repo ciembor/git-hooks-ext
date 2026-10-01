@@ -43,7 +43,7 @@
             <span class="manual-label">Usage guide</span>
             <h1>git-hooks-ext</h1>
           </div>
-          <span class="version">0.5.0</span>
+          <span class="version">0.6.0</span>
         </header>
 
         <section id="name">
@@ -134,13 +134,11 @@ ghe reference-transaction &lt;state&gt; [--dry-run]</code></pre>
 	            </table>
 	          </div>
 	          <p>
-            <code>*-created</code> is a creation candidate, not proof that the
-            ref did not already exist. Git uses an all-zero old value both for
-            ref creation and for an update that does not require a particular
-            previous value. This bridge maps every <code>zero → value</code>
-            record to <code>*-created</code>, which is usually a creation.
-            Events run only after commit, so the ref already has its new value
-            and <code>git rev-parse</code> cannot distinguish the two cases.
+            Git may report an all-zero old value even for an existing ref.
+            The bridge reads its previous value during <code>prepared</code>
+            and restores it at <code>committed</code>, distinguishing creation
+            from updates. Without a usable snapshot, <code>*-created</code>
+            remains a creation candidate. Dry-run output uses only its input.
           </p>
 	          <h3>Fallback refs</h3>
 	          <div class="table-wrap">
@@ -200,11 +198,11 @@ ghe reference-transaction &lt;state&gt; [--dry-run]</code></pre>
             <code>head-updated</code>. Changes between direct and symbolic
             values additionally emit <code>head-attached</code> or
             <code>head-detached</code>; changes between symbolic targets emit
-            <code>head-switched</code>. When Git reports an all-zero old or
-            new value, the previous or next attachment state is unknown, so
-            only <code>head-updated</code> is emitted. Git can report a zero
-            old value even for an explicit
-            <code>git update-ref --no-deref HEAD</code> detach.
+            <code>head-switched</code>. A snapshot preserves the previous
+            symbolic target or direct OID when Git supplies a zero old value,
+            including for <code>git update-ref --no-deref HEAD</code>.
+            Without a snapshot, an unknown attachment state produces only
+            <code>head-updated</code>.
           </p>
           <h3>Worktree lifecycle</h3>
           <p>
@@ -288,8 +286,9 @@ ghe worktree remove ../feature-renamed</code></pre>
         <section id="compatibility">
           <h2>Compatibility</h2>
           <p>
-            Measured on 2026-09-19. The detailed CI matrix covers Git 2.27–2.55,
-            Apple Git 2.39.3, and the files and reftable backends. Git versions
+            Raw Git results were measured on 2026-09-19. Snapshot recovery was
+            validated on 2026-10-01 with Apple Git 2.39.3 and Git 2.55 using
+            files and reftable. The CI matrix covers Git 2.27–2.55. Git versions
             &lt; 2.28 do not provide the required
             <code>reference-transaction</code> hook.
           </p>
@@ -309,35 +308,35 @@ ghe worktree remove ../feature-renamed</code></pre>
               <tbody>
                 <tr><th scope="row"><code>branch-created</code></th><td><code>git branch topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>branch-updated</code></th><td><code>git commit</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git branch -D topic</code></td><td class="status-partial"><code>2.28 ≤ Git ≤ 2.30</code> <a href="#git-bugs">²</a></td></tr>
+                <tr><th scope="row"><code>branch-deleted</code></th><td><code>git branch -D topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>branch-deleted</code></th><td><code>git update-ref -d refs/heads/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>branch-renamed</code></th><td><code>git branch -m old new</code></td><td class="status-no">❌ <a href="#git-bugs">¹</a></td></tr>
                 <tr><th scope="row"><code>branch-renamed</code></th><td><code>git update-ref --stdin</code> (heads)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-created</code></th><td><code>git fetch origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-updated</code></th><td><code>git fetch origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git remote prune origin</code></td><td class="status-no">❌ <a href="#git-bugs">²</a></td></tr>
+                <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git remote prune origin</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-deleted</code></th><td><code>git update-ref -d refs/remotes/origin/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git remote rename origin upstream</code></td><td class="status-partial">Git <code>≥ 2.55</code></td></tr>
                 <tr><th scope="row"><code>remote-branch-renamed</code></th><td><code>git update-ref --stdin</code> (remotes)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>tag-created</code></th><td><code>git tag v1</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>tag-updated</code></th><td><code>git tag -f v1</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git tag -d v1</code></td><td class="status-partial"><code>2.28 ≤ Git ≤ 2.30</code> <a href="#git-bugs">²</a></td></tr>
+                <tr><th scope="row"><code>tag-deleted</code></th><td><code>git tag -d v1</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>tag-deleted</code></th><td><code>git update-ref -d refs/tags/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>tag-renamed</code></th><td><code>git update-ref --stdin</code> (tags)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>stash-created</code></th><td>first <code>git stash push</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>stash-updated</code></th><td>second <code>git stash push</code></td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>stash-updated</code></th><td>second <code>git stash push</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>stash-updated</code></th><td><code>git update-ref refs/stash</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>stash-deleted</code></th><td><code>git stash clear</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
                 <tr><th scope="row"><code>note-created</code></th><td><code>git notes add</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
-                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes append</code></td><td class="status-no">❌</td></tr>
-                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes remove</code></td><td class="status-no">❌</td></tr>
+                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes append</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
+                <tr><th scope="row"><code>note-updated</code></th><td><code>git notes remove</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
 	                <tr><th scope="row"><code>note-updated</code></th><td><code>git update-ref refs/notes/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
 	                <tr><th scope="row"><code>note-deleted</code></th><td><code>git update-ref -d refs/notes/topic</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
 	                <tr><th scope="row"><code>note-renamed</code></th><td><code>git update-ref --stdin</code> (notes)</td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
 	                <tr><th scope="row"><code>remote-head-created</code></th><td><code>git remote set-head origin main</code></td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
 	                <tr><th scope="row"><code>remote-head-created</code></th><td><code>git remote set-head origin topic</code> after fetch</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
 	                <tr><th scope="row"><code>remote-head-updated</code></th><td><code>git update-ref --stdin</code> (<code>symref-update</code>)</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
-	                <tr><th scope="row"><code>remote-head-deleted</code></th><td><code>git remote set-head -d origin</code></td><td class="status-no">❌</td></tr>
+	                <tr><th scope="row"><code>remote-head-deleted</code></th><td><code>git remote set-head -d origin</code></td><td class="status-ok">Git <code>≥ 2.54</code></td></tr>
 	                <tr><th scope="row"><code>remote-head-deleted</code></th><td><code>git update-ref --stdin</code> (<code>symref-delete</code>)</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
 	                <tr><th scope="row"><code>replace-created</code></th><td><code>git replace &lt;old&gt; &lt;new&gt;</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
 	                <tr><th scope="row"><code>replace-updated</code></th><td><code>git replace -f &lt;old&gt; &lt;new&gt;</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
@@ -357,7 +356,7 @@ ghe worktree remove ../feature-renamed</code></pre>
 	                <tr><th scope="row"><code>head-switched</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
 	                <tr><th scope="row"><code>remote-head-created</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
 	                <tr><th scope="row"><code>root-ref-*</code></th><td>symbolic/ref-backend transaction</td><td class="status-partial">Git <code>≥ 2.54</code></td></tr>
-	                <tr><th scope="row"><code>head-detached</code></th><td><code>git checkout --detach</code></td><td class="status-no">❌</td></tr>
+	                <tr><th scope="row"><code>head-detached</code></th><td><code>git checkout --detach</code></td><td class="status-ok">Git <code>≥ 2.28</code></td></tr>
 	                <tr><th scope="row"><code>worktree-created</code></th><td><code>ghe worktree add</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
                 <tr><th scope="row"><code>worktree-removed</code></th><td><code>ghe worktree remove</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
                 <tr><th scope="row"><code>worktree-moved</code></th><td><code>ghe worktree move</code></td><td class="status-partial">Git <code>≥ 2.39.3</code></td></tr>
@@ -379,11 +378,13 @@ ghe worktree remove ../feature-renamed</code></pre>
             <li><a href="https://lore.kernel.org/git/CACQ=SRHthWOLVXmY6wgknOPgpQ+oB1vV-Q0AL=mK9mXb2Xy9Nw@mail.gmail.com/T/#t">² <code>git branch -D</code> and <code>git tag -d</code> report zero OIDs from Git 2.31 onward</a>.</li>
           </ol>
           <p>
-            <code>git remote prune</code> removes the tracking ref without a
-            semantic deletion. In the tested versions,
-            <code>git notes append</code>, <code>git notes remove</code>, and a
-            second <code>git stash push</code> emit a <em>created</em> event
-            instead of the expected <em>updated</em> event.
+            Snapshots recover branch and tag deletions, tracking ref deletions
+            from <code>git remote prune</code>, updates from
+            <code>git notes append</code>, <code>git notes remove</code> and
+            subsequent <code>git stash push</code> commands. On Git 2.54+,
+            they also recover <code>git remote set-head -d</code> and symbolic
+            HEAD transitions. Re-run <code>ghe install</code> after upgrading
+            the extension to update a config-based bridge.
           </p>
           <p class="method-note">
             See the <a href="https://github.com/ciembor/git-hooks-ext/blob/main/tests/compat/README.md">compatibility notes</a>
@@ -413,6 +414,6 @@ ghe worktree remove ../feature-renamed</code></pre>
       </article>
     </main>
 
-    <footer><span>git-hooks-ext 0.5.0</span><span>GPL-2.0-only</span></footer>
+    <footer><span>git-hooks-ext 0.6.0</span><span>GPL-2.0-only</span></footer>
   </body>
 </html>

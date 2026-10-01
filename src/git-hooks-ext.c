@@ -12,6 +12,7 @@
 #include "git_runner.h"
 #include "ref_events.h"
 #include "ref_update.h"
+#include "ref_snapshot.h"
 #include "worktree.h"
 
 static void usage(FILE *stream)
@@ -144,12 +145,21 @@ static int cmd_reference_transaction(int argc, char **argv)
 		}
 	}
 
-	if (strcmp(state, "committed") != 0)
+	if (strcmp(state, "committed") != 0 && strcmp(state, "prepared") != 0 &&
+	    strcmp(state, "aborted") != 0)
 		return 0;
 
 	status = read_updates(&updates);
-	if (!status)
+	if (!status && strcmp(state, "committed") == 0) {
+		if (!dry_run)
+			restore_ref_snapshot(&updates);
 		status = process_ref_events(&updates, dry_run);
+	} else if (!status && !dry_run) {
+		if (strcmp(state, "prepared") == 0)
+			capture_ref_snapshot(&updates);
+		else
+			discard_ref_snapshot(&updates);
+	}
 	free_updates(&updates);
 	return status;
 }

@@ -38,6 +38,7 @@ register_harness_tests
 register_unit_tests
 register_ref_events_tests
 register_git_e2e_tests
+register_ref_snapshot_tests
 register_cli_tests
 register_install_tests
 register_hook_runner_tests

@@ -24,7 +24,7 @@ ghe install
 if test "$(git config --local --get hook.git-hooks-ext.event)" = \
 	"reference-transaction"; then
 	test "$(git config --local --get hook.git-hooks-ext.command)" = \
-		"git-hooks-ext reference-transaction"
+		"exec git-hooks-ext reference-transaction"
 else
 	test -x .git/hooks/reference-transaction
 fi

@@ -43,18 +43,11 @@ static bool at_least(unsigned int major, unsigned int minor, unsigned int patch,
 static const char *event_status(const char *event, unsigned int major,
 				unsigned int minor, unsigned int patch)
 {
-	if (strcmp(event, "branch-renamed") == 0 ||
-	    strcmp(event, "head-detached") == 0 ||
-	    strcmp(event, "remote-branch-deleted") == 0 ||
-	    strcmp(event, "stash-updated") == 0 ||
-	    strcmp(event, "note-updated") == 0)
+	if (strcmp(event, "branch-renamed") == 0)
 		return "affected by Git bug";
-	if (strcmp(event, "branch-deleted") == 0 || strcmp(event, "tag-deleted") == 0) {
-		if (!at_least(major, minor, patch, 2, 28, 0))
-			return "requires Git 2.28+";
-		return at_least(major, minor, patch, 2, 31, 0) ?
-			"affected by Git bug" : "supported";
-	}
+	if (strcmp(event, "head-detached") == 0 || strcmp(event, "head-updated") == 0)
+		return at_least(major, minor, patch, 2, 28, 0) ? "supported" :
+			"requires Git 2.28+";
 	if (strcmp(event, "remote-branch-renamed") == 0)
 		return at_least(major, minor, patch, 2, 55, 0) ? "supported" :
 			"requires Git 2.55+";
@@ -81,7 +74,8 @@ static const char *config_bridge_status(void)
 	const char *status = "no";
 
 	if (event && command && strcmp(event, "reference-transaction") == 0 &&
-	    strcmp(command, "git-hooks-ext reference-transaction") == 0)
+	    (strcmp(command, "git-hooks-ext reference-transaction") == 0 ||
+	     strcmp(command, "exec git-hooks-ext reference-transaction") == 0))
 		status = "yes";
 	free(event);
 	free(command);
