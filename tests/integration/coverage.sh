@@ -18,7 +18,8 @@ test_coverage_forced_failures() {
 
 		mkdir -p "$TEST_DIR/path-bin"
 		ln -sf "$bin" "$TEST_DIR/path-bin/git-hooks-ext"
-		with_legacy_git env PATH="$TEST_DIR/path-bin:$PATH" git-hooks-ext install
+		PATH="$TEST_DIR/path-bin:$PATH" with_legacy_git env git-hooks-ext install
+		grep -Fq "exec 'git-hooks-ext' reference-transaction" .git/hooks/reference-transaction
 
 		assert_fails env GHE_TEST_XMALLOC_FAIL=1 "$bin" add branch-created x ./x
 		"$bin" add branch-created managed ./managed
