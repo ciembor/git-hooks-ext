@@ -8,7 +8,7 @@
 
 ![git-hooks-ext](git-hooks-ext.png)
 
-[About](#about) · [Comparison](#comparison) · [Events](#events) ·
+[About](#about) · [Events](#events) ·
 [Quick Start](#quick-start) · [Install](#install) ·
 [Worktrees](#worktree-lifecycle) · [Configuration](#advanced-configuration) ·
 [Hook Arguments](#hook-arguments) · [Compatibility](#compatibility) ·
@@ -23,64 +23,6 @@ deleted or a ref was renamed.
 `git-hooks-ext` turns those low-level updates into semantic events such as
 `branch-created`, `tag-deleted`, `remote-head-updated` and `ref-created`. It
 also adds the worktree lifecycle events that Git does not provide.
-
-## Comparison
-
-Hook managers and semantic event detection solve different problems.
-[Lefthook](https://lefthook.dev/) and [Husky](https://typicode.github.io/husky/)
-help run commands from Git's existing hooks, such as linting before a commit
-or testing before a push. `git-hooks-ext` adds callbacks for changes to
-repository state that those hooks do not name.
-
-|                         | git-hooks-ext | Lefthook | Husky | raw Git |
-| ----------------------- | ------------- | -------- | ----- | ------- |
-| manage normal hooks     | ✗             | ✓        | ✓     | ✓       |
-| `reference-transaction` | ✓             | ✓        | ✗     | ✓       |
-| `branch-created`        | ✓             | ✗        | ✗     | manual  |
-| `branch-deleted`        | ✓             | ✗        | ✗     | manual  |
-| `tag-created`           | ✓             | ✗        | ✗     | manual  |
-| semantic ref events     | ✓             | ✗        | ✗     | manual  |
-
-Here, ✓ means built-in support; ✗ means not provided out of the box, not
-impossible to implement with custom scripts. `manual` means writing and
-maintaining your own semantic detection on top of Git's raw hooks. For normal
-hooks, raw Git provides hook files and configuration rather than a task runner;
-`git-hooks-ext` is not a general-purpose manager for `pre-commit` or `pre-push`.
-Husky's standard installer does not create a `reference-transaction` entry point;
-one can be added manually. Comparison checked on October 1, 2026 against the
-[Lefthook hook schema](https://github.com/evilmartians/lefthook/blob/master/schema.json),
-[Husky installer](https://github.com/typicode/husky/blob/main/index.js), and
-[Git hook reference](https://git-scm.com/docs/githooks#_reference_transaction).
-
-### What the semantic layer adds
-
-Installing a `reference-transaction` hook is not the same as implementing
-`branch-deleted`. Lefthook can run a command for that transaction, and raw Git
-can run a script, but neither supplies the semantic interpretation for you.
-`git-hooks-ext` provides that layer:
-
-- **State changes, not command names.** Creating a branch with `git branch` or
-  `git update-ref` produces the same event when Git exposes the transaction.
-  A `post-checkout` callback alone cannot cover arbitrary ref updates.
-- **Recovery of missing old values.** The bridge snapshots existing refs at
-  `prepared` and restores their previous values at `committed`. This recovers
-  branch/tag deletions and remote pruning, and distinguishes notes and stash
-  updates from apparent creations when Git reports a zero old value.
-- **Fewer false events.** For recovered `zero -> zero` deletions, it confirms
-  that the ref is actually absent. Packed-ref maintenance must not look like
-  a branch deletion. Aborted transactions do not emit semantic callbacks.
-- **A consistent callback interface.** Branches, tags, remote refs, notes,
-  stash and observable `HEAD` transitions use named events with documented
-  arguments, backed by real-Git compatibility tests for `files` and `reftable`.
-
-Neither compared hook manager ships this semantic detection and recovery layer.
-They can execute a custom implementation; `git-hooks-ext` supplies the tested
-implementation so each project does not have to build it again. It complements
-ordinary hook management rather than replacing it.
-
-This does not remove Git's observation limits: incomplete `git branch -m`
-transactions still cannot identify the destination, and worktree lifecycle
-events still require `ghe worktree`. See [Compatibility](#compatibility).
 
 ## Events
 

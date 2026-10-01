@@ -29,7 +29,6 @@
           <a href="#name">Name</a>
           <a href="#synopsis">Synopsis</a>
           <a href="#description">Description</a>
-          <a href="#comparison">Comparison</a>
           <a href="#events">Events</a>
           <a href="#quick-start">Quick start</a>
           <a href="install.html">Install ↗</a>
@@ -98,76 +97,6 @@ ghe reference-transaction &lt;state&gt; [--dry-run]</code></pre>
             Event hooks run after the transaction is committed. They receive
             the short ref name, full ref name, old value, and new value.
             Symbolic values use Git's <code>ref:</code> representation.
-          </p>
-        </section>
-
-        <section id="comparison">
-          <h2>Comparison</h2>
-          <p>
-            Hook managers and semantic event detection solve different problems.
-            <a href="https://lefthook.dev/">Lefthook</a> and
-            <a href="https://typicode.github.io/husky/">Husky</a> help run commands
-            from Git's existing hooks, such as linting before a commit or testing
-            before a push. <code>git-hooks-ext</code> adds callbacks for changes
-            to repository state that those hooks do not name.
-          </p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr><th scope="col">Capability</th><th scope="col">git-hooks-ext</th><th scope="col">Lefthook</th><th scope="col">Husky</th><th scope="col">raw Git</th></tr>
-              </thead>
-              <tbody>
-                <tr><th scope="row">manage normal hooks</th><td>✗</td><td>✓</td><td>✓</td><td>✓</td></tr>
-                <tr><th scope="row"><code>reference-transaction</code></th><td>✓</td><td>✓</td><td>✗</td><td>✓</td></tr>
-                <tr><th scope="row"><code>branch-created</code></th><td>✓</td><td>✗</td><td>✗</td><td>manual</td></tr>
-                <tr><th scope="row"><code>branch-deleted</code></th><td>✓</td><td>✗</td><td>✗</td><td>manual</td></tr>
-                <tr><th scope="row"><code>tag-created</code></th><td>✓</td><td>✗</td><td>✗</td><td>manual</td></tr>
-                <tr><th scope="row">semantic ref events</th><td>✓</td><td>✗</td><td>✗</td><td>manual</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <p>
-            Here, ✓ means built-in support; ✗ means not provided out of the box,
-            not impossible to implement with custom scripts. <code>manual</code>
-            means writing and maintaining your own semantic detection on top of
-            Git's raw hooks. For normal hooks, raw Git provides hook files and
-            configuration rather than a task runner; <code>git-hooks-ext</code>
-            is not a general-purpose manager for <code>pre-commit</code> or
-            <code>pre-push</code>. Husky's standard installer does not create a
-            <code>reference-transaction</code> entry point; one can be added manually.
-          </p>
-          <p class="method-note">
-            Comparison checked on October 1, 2026 against the
-            <a href="https://github.com/evilmartians/lefthook/blob/master/schema.json">Lefthook hook schema</a>,
-            <a href="https://github.com/typicode/husky/blob/main/index.js">Husky installer</a>, and
-            <a href="https://git-scm.com/docs/githooks#_reference_transaction">Git hook reference</a>.
-          </p>
-          <h3>What the semantic layer adds</h3>
-          <p>
-            Installing a <code>reference-transaction</code> hook is not the same
-            as implementing <code>branch-deleted</code>. Lefthook can run a
-            command for that transaction, and raw Git can run a script, but
-            neither supplies the semantic interpretation for you.
-            <code>git-hooks-ext</code> provides that layer:
-          </p>
-          <ul>
-            <li><strong>State changes, not command names.</strong> Creating a branch with <code>git branch</code> or <code>git update-ref</code> produces the same event when Git exposes the transaction. A <code>post-checkout</code> callback alone cannot cover arbitrary ref updates.</li>
-            <li><strong>Recovery of missing old values.</strong> The bridge snapshots existing refs at <code>prepared</code> and restores their previous values at <code>committed</code>. This recovers branch/tag deletions and remote pruning, and distinguishes notes and stash updates from apparent creations when Git reports a zero old value.</li>
-            <li><strong>Fewer false events.</strong> For recovered <code>zero -&gt; zero</code> deletions, it confirms that the ref is actually absent. Packed-ref maintenance must not look like a branch deletion. Aborted transactions do not emit semantic callbacks.</li>
-            <li><strong>A consistent callback interface.</strong> Branches, tags, remote refs, notes, stash and observable <code>HEAD</code> transitions use named events with documented arguments, backed by real-Git compatibility tests for <code>files</code> and <code>reftable</code>.</li>
-          </ul>
-          <p>
-            Neither compared hook manager ships this semantic detection and
-            recovery layer. They can execute a custom implementation;
-            <code>git-hooks-ext</code> supplies the tested implementation so each
-            project does not have to build it again. It complements ordinary
-            hook management rather than replacing it.
-          </p>
-          <p>
-            This does not remove Git's observation limits: incomplete
-            <code>git branch -m</code> transactions still cannot identify the
-            destination, and worktree lifecycle events still require
-            <code>ghe worktree</code>. See <a href="#compatibility">Compatibility</a>.
           </p>
         </section>
 
